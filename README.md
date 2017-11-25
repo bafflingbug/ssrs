@@ -33,8 +33,9 @@
 - 主服务器config.json
     ```
     {
-        "group": "PowerByBafflingBUG",      //SSR GROUP
-        "token": "password"                 //验证,用于确认权限(弱验证)
+        "group": "PowerByBafflingBUG",                      //SSR GROUP
+        "token": "password",                                //服务器间token,用于防止恶意的post数据(弱验证)
+        "user-token": "696d29e0940a4957748fe3fc9efd22a3"    //用户获取ssr链接时候的token，此处填写值为原始密钥经过[两次]md5加密以后的值(32位/小写/强验证)
     }
     ```
 
@@ -45,13 +46,13 @@
         "ssr-config-file": ["ssr_config1","ssr_config2"],   //SSR服务器的配置文件路径
         "main-server": "ssr.example.com",                   //主服务器的域名/IP
         "host": "0.0.0.0",                                  //当前服务器的外网IP
-        "token": "password",                                //验证,需与主服务器一致  
+        "token": "password",                                //服务器间token,需与主服务器一致  
         "ssl": false                                        //主服务器是否使用SSL(https)
     }
     ```
 
 ### SSR服务器订阅地址
-**http(s)://[main-server]/?token=[token]**
+**http(s)://[main-server]/?token=[user-token]**
 
 示例：*http://example.com/?token=password*
 
