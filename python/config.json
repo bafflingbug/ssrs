@@ -1,6 +1,19 @@
 {
-  "ss-config-file": ["ss_config1","ss_config2"],
-  "ssr-config-file": ["ssr_config1","ssr_config2"],
+  "ss-config-file": [
+    {
+      "config-file": "ss_config1",
+      "remarks": "ss备注1"
+    },{
+      "config-file": "ss_config2",
+      "remarks": "ss备注2"
+    }
+  ],
+  "ssr-config-file": [
+    {
+      "config-file": "ssr_config1",
+      "remarks": "ssr备注1"
+    }
+  ],
   "main-server": "ssr.example.com",
   "host": "0.0.0.0",
   "token": "password",
