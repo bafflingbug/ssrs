@@ -54,6 +54,7 @@
 ### SSR服务器订阅地址
 **http(s)://[main-server]/?token=[user-token]**
 
+此处user-token为未加密的明文
 示例：*http://example.com/?token=password*
 
 ### 运行流程
