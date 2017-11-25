@@ -2,7 +2,7 @@
     date_default_timezone_set('Asia/Shanghai');
     $json = file_get_contents('./config.json');
     $config = json_decode($json, true);
-    if ($config["token"] !== $_GET["token"]){
+    if ($config["user-token"] !== md5(md5($_REQUEST["token"]))){
         echo "error:1";
     }else{
         $json = file_get_contents('./ssrURL.json');
