@@ -33,21 +33,34 @@
 - 主服务器config.json
     ```
     {
-        "group": "PowerByBafflingBUG",                      //SSR GROUP
-        "token": "password",                                //服务器间token,用于防止恶意的post数据(弱验证)
-        "user-token": "696d29e0940a4957748fe3fc9efd22a3"    //用户获取ssr链接时候的token，此处填写值为原始密钥经过[两次]md5加密以后的值(32位/小写/强验证)
+        "group": "PowerByBafflingBUG",                     //SSR GROUP
+        "token": "password",                               //服务器间token,用于防止恶意的post数据(弱验证)
+        "user-token": "696d29e0940a4957748fe3fc9efd22a3"   //用户获取ssr链接时候的token，此处填写值为原始密钥经过[两次]md5加密以后的值(32位/小写/强验证)
     }
     ```
 
 - SSR服务器config.json
     ```
     {
-        "ss-config-file": ["ss_config1","ss_config2"],      //SS服务器的配置文件路径
-        "ssr-config-file": ["ssr_config1","ssr_config2"],   //SSR服务器的配置文件路径
-        "main-server": "ssr.example.com",                   //主服务器的域名/IP
-        "host": "0.0.0.0",                                  //当前服务器的外网IP
-        "token": "password",                                //服务器间token,需与主服务器一致  
-        "ssl": false                                        //主服务器是否使用SSL(https)
+      "ss-config-file": [                                  //SS服务器配置文件(多个)
+        {                                                  //第一个SS服务器
+          "config-file": "ss_config1",                     //配置文件地址
+          "remarks": "ss备注1"                             //服务器备注(客户端备注位置)              
+        },{                                                //第二个SS服务器
+          "config-file": "ss_config2",
+          "remarks": "ss备注2"
+        }
+      ],
+      "ssr-config-file": [                                //SSR服务器配置文件(多个/同SS)
+        {
+          "config-file": "ssr_config1",
+          "remarks": "ssr备注1"
+        }
+      ],
+      "main-server": "example.com",                       //主服务器的域名/IP
+      "host": "0.0.0.0",                                  //当前服务器的外网IP
+      "token": "password",                                //服务器间token,需与主服务器一致 
+      "ssl": false                                        //主服务器是否使用SSL(https)
     }
     ```
 
@@ -55,6 +68,7 @@
 **http(s)://[main-server]/?token=[user-token]**
 
 此处user-token为未加密的明文
+
 示例：*http://example.com/?token=password*
 
 ### 运行流程
