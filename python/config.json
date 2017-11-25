@@ -1,0 +1,8 @@
+{
+  "ss-config-file": ["ss_config1","ss_config2"],
+  "ssr-config-file": ["ssr_config1","ssr_config2"],
+  "main-server": "ssr.example.com",
+  "host": "0.0.0.0",
+  "token": "password",
+  "ssl": false
+}
