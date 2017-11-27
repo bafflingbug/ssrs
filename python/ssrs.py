@@ -3,12 +3,12 @@ import json
 import hashlib
 from network import *
 
-def new_config(file, fileMD5, update):
+def new_config(file, fileMD5):
     config_file = open(file, 'rb')
     md5 = hashlib.md5(config_file.read()).hexdigest()
     config_file.close()
     if file in fileMD5.keys() and fileMD5[file] == md5:
-        return update
+        return False
     fileMD5[file] = md5
     return True
 

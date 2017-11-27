@@ -19,7 +19,7 @@ if __name__ == "__main__":
     finally:
         if MD5_file:
             MD5_file.close()
-    update = new_config(dir_path + '/config.json', fileMD5, update)
+    update = new_config(dir_path + '/config.json', fileMD5) if not update else update
     config_file = open(dir_path + '/config.json', 'r')
     config = json.load(config_file)
     config_file.close()
@@ -30,10 +30,10 @@ if __name__ == "__main__":
         fileMD5['group'] = group
     ssr_url = ''
     for ss_config in config['ss-config-file']:
-        update = new_config(ss_config['config-file'], fileMD5, update)
+        update = new_config(ss_config['config-file'], fileMD5) if not update else update
         ssr_url += ss2URL(ss_config, config, group)
     for ssr_config in config['ssr-config-file']:
-        update = new_config(ssr_config['config-file'], fileMD5, update)
+        update = new_config(ssr_config['config-file'], fileMD5) if not update else update
         ssr_url += ssr2URL(ssr_config, config, group)
     if update:
         print(ssr_url)
