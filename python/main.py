@@ -3,49 +3,78 @@ import os
 from network import *
 from ssrs import *
 import sys
+from py3 import py3
+
 
 if __name__ == "__main__":
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
+    if not py3:
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
     update = False
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    MD5_file = None
+    log_file = None
     try:
-        MD5_file = open(dir_path + '/MD5.json', 'r')
-        fileMD5 = json.load(MD5_file)
+        log_file = open(dir_path + '/log.json', 'r')
+        logfile = json.load(log_file)
     except:
-        fileMD5 = {}
+        logfile = {}
         update = True
     finally:
-        if MD5_file:
-            MD5_file.close()
-    update = new_config(dir_path + '/config.json', fileMD5, update)
+        if log_file:
+            log_file.close()
+    u = new_config(dir_path + '/config.json', logfile)
+    update = u if not update else update
     config_file = open(dir_path + '/config.json', 'r')
     config = json.load(config_file)
     config_file.close()
     group = getgroup('http://' if not config['ssl'] else 'https://' + config['main-server'] + '/group.php')
-    if 'group' not in fileMD5.keys() or group != fileMD5['group']:
+    if 'group' not in logfile.keys() or group != logfile['group']:
         print(group)
         update = True
-        fileMD5['group'] = group
+        logfile['group'] = group
+
     ssr_url = ''
+
     for ss_config in config['ss-config-file']:
-        update = new_config(ss_config['config-file'], fileMD5, update)
-        ssr_url += ss2URL(ss_config, config, group)
+        u = new_config(ss_config['config-file'], logfile)
+        update = u if not update else update
+        url = ss2URL(ss_config, config, group)
+        if url is not False:
+            ssr_url += url
+            if 'port' not in logfile[ss_config['config-file']].keys() or logfile[ss_config['config-file']]['port'] is not True:
+                update = True
+                logfile[ss_config['config-file']]['port'] = True
+        else:
+            if 'port' not in logfile[ss_config['config-file']].keys() or logfile[ss_config['config-file']]['port'] is not False:
+                update = True
+                logfile[ss_config['config-file']]['port'] = False
+
     for ssr_config in config['ssr-config-file']:
-        update = new_config(ssr_config['config-file'], fileMD5, update)
-        ssr_url += ssr2URL(ssr_config, config, group)
+        u = new_config(ssr_config['config-file'], logfile)
+        update = u if not update else update
+        url = ssr2URL(ssr_config, config, group)
+        if url is not False:
+            ssr_url += url
+            if 'port' not in logfile[ssr_config['config-file']].keys() or logfile[ssr_config['config-file']]['port'] is not True:
+                update = True
+                logfile[ssr_config['config-file']]['port'] = True
+        else:
+            if 'port' not in logfile[ssr_config['config-file']].keys() or logfile[ssr_config['config-file']]['port'] is not False:
+                update = True
+                logfile[ssr_config['config-file']]['port'] = False
     if update:
+        print('post')
         print(ssr_url)
-        MD5_file = open(dir_path + '/MD5.json', 'w')
-        json.dump(fileMD5, MD5_file)
+        MD5_file = open(dir_path + '/log.json', 'w')
+        json.dump(logfile, MD5_file)
         MD5_file.close()
         res = post('http://' if not config['ssl'] else 'https://' + config['main-server'] + '/post.php', ssr_url,
                    config['token'], config['host'])
     else:
+        print('active')
         state = active('http://' if not config['ssl'] else 'https://' + config['main-server'] + '/active.php', config['token'], config['host'])
         if state.find('error:2') >= 0:
-            MD5_file = open(dir_path + '/MD5.json', 'w')
+            MD5_file = open(dir_path + '/log.json', 'w')
             MD5_file.truncate()
             MD5_file.close()
             os.system('python ' + dir_path + '/ssrs.py')
