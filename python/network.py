@@ -1,6 +1,11 @@
-import urllib
-import urllib2
 import socket
+from py3 import py3
+
+if py3:
+    from urllib import request, parse
+else:
+    import urllib
+    import urllib2
 
 
 def portopen(ip,port):
@@ -16,19 +21,32 @@ def portopen(ip,port):
 
 
 def getgroup(url):
-    res = urllib2.urlopen(url)
+    if py3:
+        res = request.urlopen(url)
+    else:
+        res = urllib2.urlopen(url)
     return str(res.read())
 
 
 def post(url, data, token, host):
-    parm = urllib.urlencode({'ssr': data, "token": token, "host": host})
-    req = urllib2.Request(url, parm)
-    res = urllib2.urlopen(req)
+    if py3:
+        data = parse.urlencode({'ssr': data, "token": token, "host": host}).encode('utf-8')
+        req = request.Request(url, data=data)
+        res = request.urlopen(req)
+    else:
+        parm = urllib.urlencode({'ssr': data, "token": token, "host": host})
+        req = urllib2.Request(url, parm)
+        res = urllib2.urlopen(req)
     return str(res.read())
 
 
 def active(url, token, host):
-    parm = urllib.urlencode({"token": token, "host": host})
-    req = urllib2.Request(url, parm)
-    res = urllib2.urlopen(req)
+    if py3:
+        data = parse.urlencode({"token": token, "host": host}).encode('utf-8')
+        req = request.Request(url, data=data)
+        res = request.urlopen(req)
+    else:
+        parm = urllib.urlencode({"token": token, "host": host})
+        req = urllib2.Request(url, parm)
+        res = urllib2.urlopen(req)
     return str(res.read())
