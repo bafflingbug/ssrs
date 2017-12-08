@@ -3,19 +3,23 @@ import json
 import hashlib
 from network import *
 
-def new_config(file, fileMD5):
+def new_config(file, logfile):
     config_file = open(file, 'rb')
     md5 = hashlib.md5(config_file.read()).hexdigest()
     config_file.close()
-    if file in fileMD5.keys() and fileMD5[file] == md5:
+    if file not in logfile.keys():
+        logfile[file] = {}
+    if 'md5' in logfile[file].keys() and logfile[file]['md5'] == md5:
         return False
-    fileMD5[file] = md5
+    logfile[file]['md5'] = md5
     return True
 
 
 def ssr2URL(ssr, config, group):
     ssr_config_file = open(ssr['config-file'], 'r')
     ssr_config = json.load(ssr_config_file)
+    if not portopen('127.0.0.1', ssr_config['server_port']):
+        return False
     param_str = "obfsparam=" + base64.urlsafe_b64encode(ssr_config['obfs_param'].encode() if not ssr_config['obfs_param'] is None else ''.encode()).decode().rstrip('=')
     if 'protocol_param' in ssr_config.keys() and (not ssr_config['protocol_param'] == ""):
         param_str += '&protoparam=' + base64.urlsafe_b64encode(ssr_config['protocol_param'].encode()).decode().rstrip('=')
@@ -31,6 +35,8 @@ def ssr2URL(ssr, config, group):
 def ss2URL(ss, config, group):
     ss_config_file = open(ss['config-file'], 'r')
     ss_config = json.load(ss_config_file)
+    if not portopen('127.0.0.1', ss_config['server_port']):
+        return False
     param_str = "obfsparam=" + ''
     if 'remarks' in ss.keys() and (not ss['remarks'] == ""):
         param_str += '&remarks=' + base64.urlsafe_b64encode(ss['remarks'].encode()).decode().rstrip('=')
