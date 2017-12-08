@@ -3,10 +3,13 @@ import os
 from network import *
 from ssrs import *
 import sys
+from py3 import py3
+
 
 if __name__ == "__main__":
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
+    if not py3:
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
     update = False
     dir_path = os.path.dirname(os.path.realpath(__file__))
     log_file = None
