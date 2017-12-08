@@ -14,7 +14,7 @@
       "remarks": "ssr备注1"
     }
   ],
-  "main-server": "ssr.example.com",
+  "main-server": "example.com",
   "host": "0.0.0.0",
   "token": "password",
   "ssl": false
