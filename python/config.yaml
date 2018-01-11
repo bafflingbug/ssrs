@@ -1,0 +1,13 @@
+url:
+token:
+server:
+  host:
+  port:
+ssr_list:
+  - config_file:
+    remarks:
+    restart:
+ss_list:
+  - config_file:
+    remarks:
+    restart:
