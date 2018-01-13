@@ -3,6 +3,7 @@
 import python.server as server
 from python.py3 import PY3
 import python.base as base
+import python.reg as reg
 
 if __name__ == '__main__':
     if not PY3:
@@ -10,6 +11,7 @@ if __name__ == '__main__':
 
         reload(sys)
         sys.setdefaultencoding('utf-8')
+    reg.reg()
     config = base.get_config()
     server = server.socketserver.ThreadingTCPServer((config['server']['host'], config['server']['port']),
                                                     server.Handler)

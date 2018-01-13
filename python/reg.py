@@ -9,7 +9,8 @@ else:
     import urllib
     import urllib2
 
-if __name__ == '__main__':
+
+def reg():
     config = base.get_config()
     if PY3:
         data = parse.urlencode({'port': config['server']['port'], "host": config['server']['host']}).encode('utf-8')
@@ -26,3 +27,7 @@ if __name__ == '__main__':
         base.err_log(602, '注册失败')
     else:
         base.err_log(500, '注册时获得未知的数据:' + s)
+
+
+if __name__ == '__main__':
+    reg()
