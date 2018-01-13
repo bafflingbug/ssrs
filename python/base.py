@@ -5,10 +5,17 @@ import sys
 import time
 import yaml
 import json
+from python.py3 import PY3
+
+if PY3:
+    from urllib import request
+else:
+    import urllib2
 
 config = None
 path = None
 err_file = None
+group = None
 
 
 def dir_path():
@@ -58,3 +65,20 @@ def get_send_buf(status, data=None):
         err_log(500, '构建SendBuf时存在状态码:' + str(data['status']))
         data['status'] = status
     return bytes(json.dumps(data), encoding='utf-8')
+
+
+def get_group():
+    global group
+    if group is not None and group != '':
+        return group
+    else:
+        con = get_config()
+        if PY3:
+            res = request.urlopen(con['url'] + '/api/group.php')
+        else:
+            res = urllib2.urlopen(con['url'] + '/api/group.php')
+        return str(res.read())
+
+
+def get_data(value, key):
+    return {key: value}
