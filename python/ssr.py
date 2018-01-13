@@ -25,18 +25,25 @@ def port_open(port):
 
 def all():
     config = base.get_config()
-    data = []
+    remarks = set()
+    data = dict()
     for ssr in config['ssr_list']:
-        ssrurl = ssr2URL(ssr)
-        if ssrurl is not False:
-            ssrdata = base.get_data(ssrurl, ssr['remarks'])
-            data.append(ssrdata)
+        if ssr['remarks'] in remarks:
+            remarks.add(ssr['remarks'])
+            ssrurl = ssr2URL(ssr)
+            if ssrurl is not False:
+                data[ssr['remarks']] = ssrurl
+        else:
+            base.err_log(502, '存在相同remarks的SS/SSR进程:' + ssr['remarks'])
     for ss in config['ssr_list']:
-        ssurl = ssr2URL(ss)
-        if ssurl is not False:
-            ssdata = base.get_data(ssurl, ss['remarks'])
-            data.append(ssdata)
-    return base.get_data(data, config['server']['host'])
+        if ssr['remarks'] in remarks:
+            remarks.add(ssr['remarks'])
+            ssurl = ssr2URL(ss)
+            if ssurl is not False:
+                data[ss['remarks']] = ssurl
+        else:
+            base.err_log(502, '存在相同remarks的SS/SSR进程:' + ss['remarks'])
+    return data
 
 
 def ssr2URL(ssr):

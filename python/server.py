@@ -26,8 +26,8 @@ class Handler(socketserver.BaseRequestHandler):
                         base.err_log(302, 'socket缺少command字段')
                         conn.sendall(base.get_send_buf(302))
                     elif data['command'] == 101:
-                        data = base.get_data(SSR.all(), 'data')
-                        conn.sendall(base.get_send_buf(201, data))
+                        data = base.get_data(SSR.all(), config['server']['host'])
+                        conn.sendall(base.get_send_buf(201, base.get_data(data, 'data')))
                     elif data['command'] == 102:
                         if 'remarks' in data:
                             if data['remarks'] is not None:
@@ -37,8 +37,9 @@ class Handler(socketserver.BaseRequestHandler):
                                         flag = True
                                         ssrurl = SSR.ssr2URL(ssr)
                                         if ssrurl is not False:
-                                            ssrdata = base.get_data(base.get_data(ssrurl, ssr['remarks']), 'data')
-                                            conn.sendall(base.get_send_buf(202, ssrdata))
+                                            ssrdata = base.get_data(base.get_data(ssrurl, ssr['remarks']),
+                                                                    config['server']['host'])
+                                            conn.sendall(base.get_send_buf(202, base.get_data(ssrdata, 'data')))
                                         else:
                                             conn.sendall(base.get_send_buf(501,
                                                                            base.get_data('SSR进程无法运行:' + ssr['remarks'],
@@ -50,8 +51,9 @@ class Handler(socketserver.BaseRequestHandler):
                                             flag = True
                                             ssurl = SSR.ssr2URL(ss)
                                             if ssurl is not False:
-                                                ssdata = base.get_data(base.get_data(ssurl, ss['remarks']), 'data')
-                                                conn.sendall(base.get_send_buf(202, ssdata))
+                                                ssdata = base.get_data(base.get_data(ssurl, ss['remarks']),
+                                                                       config['server']['host'])
+                                                conn.sendall(base.get_send_buf(202, base.get_data(ssdata, 'data')))
                                             else:
                                                 conn.sendall(
                                                     base.get_send_buf(501, base.get_data('SS进程无法运行:' + ss['remarks'],
