@@ -25,7 +25,8 @@ def get_config():
     return config
 
 
-def err_log(data):
+def err_log(err_num, data):
     error_file = open(dir_path() + '/error.log', 'a')
-    error_file.write('[' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ']' + str(data) + '\n')
+    error_file.write('[' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ']\n错误码:' + str(
+        err_num) + '\n错误信息' + str(data) + '\n')
     error_file.close()
