@@ -5,7 +5,7 @@ import sys
 import time
 import yaml
 import json
-from python.py3 import PY3
+from proxy.py3 import PY3
 
 if PY3:
     from urllib import request
@@ -28,9 +28,8 @@ def dir_path():
 def get_config():
     global config
     if config is None:
-        config_file = open(dir_path() + '/config.yaml', encoding='utf-8')
-        config = yaml.load(config_file)
-        config_file.close()
+        with open(dir_path() + '/config.yaml') as config_file:
+            config = yaml.load(config_file)
     return config
 
 
@@ -38,19 +37,19 @@ def err_log(err_num, data):
     global err_file
     if err_file is None:
         err_file_open()
-    err_file.write('[' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ']\n错误码:' + str(
-        err_num) + '\n错误信息' + str(data) + '\n')
+    err_file.write('[' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ']\n错误码: ' + str(
+        err_num) + '\n错误信息: ' + str(data) + '\n')
     err_file.flush()
 
 
 def err_file_open():
     global err_file
     if err_file is None:
-        err_file = open(dir_path() + '/error.log', 'a', encoding='utf-8')
+        err_file = open(dir_path() + '/error.log', 'a')
     else:
         try:
             err_file.close()
-        except:
+        except Exception:
             pass
         finally:
             err_file = open(dir_path() + '/error.log', 'a')
@@ -64,7 +63,7 @@ def get_send_buf(status, data=None):
     else:
         err_log(500, '构建SendBuf时存在状态码:' + str(data['status']))
         data['status'] = status
-    return bytes(json.dumps(data), encoding='utf-8')
+    return bytes(json.dumps(data))
 
 
 def get_group():
