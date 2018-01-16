@@ -1,0 +1,22 @@
+中介服务器 -> 代理服务器
+101 请求代理服务器全部SS/SSR进程
+102 请求代理服务器指定名字为remarks的进程
+301 缺token/pw字段
+401 token/pw不正确
+601 注册成功
+602 注册失败
+
+代理服务器 -> 中介服务器
+201 请求101的答应 {'status': status, 'data':{host: [{remarks:ssr,remarks:ssr}]}}
+202 请求102的答应 {'status': status, 'data':{host: {remarks:ssr,remarks:ssr}}}
+301 缺token字段
+302 缺command字段
+303 缺remarks字段
+401 token不正确
+402 command不正确
+403 未找到remrks字段对应的服务器
+500 服务器异常
+
+代理服务器 内部
+501 SS/SSR进程无法启动
+502 重复的remarks
