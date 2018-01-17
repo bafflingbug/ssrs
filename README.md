@@ -1,3 +1,6 @@
+> - 此分支为v2.0版本的预览版
+> - 如果存在问题请切换到1.0分支(版本号为v1.x)
+
 # ShadowsocksR-support
 一个在服务器端生成ShadowsockR服务器订阅以及维护进程存活的简单实现
 
@@ -10,11 +13,11 @@
 - 中介服务器的部署
     1. 拷贝root目录下文件到主服务器
     2. 修改`config.yaml`配置文件
-    3. 添加计划任务
+    3. 添加计划任务(可选)
        1. 控制台输入`crontab -e`
        2. 输入
         ```
-            0 * * * * php /项目路径/root/api/all.php &
+            0 * * * * cd /项目路径;php ./all.php &
         ```
     4. 执行`service crond restart`
     5. 配置Nginx/apache等Web服务器
@@ -31,6 +34,10 @@
                 nohup python -m proxy.core > log.out 2>&1
             )&
             ```
+- socket连接问题
+    - 检查代理服务器的SSRS运行状态
+    - 关闭防火墙
+    - 配置安全组放行1025-65535端口的TCP
 
 ### config.yaml配置文件
 - 中介服务器config.yaml
@@ -42,14 +49,14 @@
 
 - 代理服务器config.json
     ```
-    url: http://example.com/                          # 中介服务器的地址（用于注册一个代理服务器）
+    url: http://example.com/                          # 中介服务器的地址(用于注册一个代理服务器)
     token: password                                   # 服务器间token，必须和中介服务器相同字段保持一致(弱验证)
     server:
         host: 127.0.0.1                               # 服务器的公网ip，请勿填写0.0.0.0或者127.0.0.1
-        port: 65535                                   # SSRS进程使用的端口（非SSR端口）
+        port: 65535                                   # SSRS进程使用的端口(非SSR端口)
     ssr_list:
-        - config_file: /etc/shadowsocksR/config.json  # SSR进程的配置文件路径（完整路径）
-          remarks: ssr                                # SSR进程的备注名（请勿使用中文，空格，特殊符号等）
+        - config_file: /etc/shadowsocksR/config.json  # SSR进程的配置文件路径(完整路径)
+          remarks: ssr                                # SSR进程的备注名(请勿使用中文，空格，特殊符号等)
           restart: /etc/init.d/shadowsocksR restart   # SSR进程的重启命令
         # 第二个SSR进程
         - config_file:
