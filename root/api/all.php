@@ -9,7 +9,7 @@ if (!$config) {
     include_once './Spyc.php';
     $config = spyc_load_file('../config.yaml');
 }
-if (!isShell && ($_REQUEST['pw'] === null || md5(md5($_REQUEST['pw'])) !== $config['password'])) {
+if (!isShell && ($_REQUEST['pw'] === null || md5(md5($_REQUEST['pw'])) !== $config['password']) && $isReg === null) {
     echo '500: Illegal access';
     exit(500);
 }
@@ -40,22 +40,23 @@ foreach ($reg as $host => $port) {
             $data = json_encode(array('command' => $command, 'token' => $config['token']));
             @socket_write($socket, $data, strlen($data));
             array_push($sockets, $socket);
-        } else {
             $ns[$host] = '';
+        } else {
             logdata("socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)));
         }
     } else {
         logdata("socket_create() failed: reason: " . socket_strerror(socket_last_error()));
     }
 }
-$reg = array_diff_key($reg, $ns);
+$reg = array_intersect_key($reg, $ns);
 file_put_contents('./data/reg.json', json_encode($reg));
-$ssr = array_diff_key($ssr, $ns);
+$ssr = array_intersect_key($ssr, $ns);
 while (!empty($sockets)) {
     $read_sock = $sockets;
     $sock_num = @socket_select($read_sock, $write_sock = null, $except_sock = null, 0);
     if ($sock_num === false) {
         echo "socket_select() failed, reason: " . socket_strerror(socket_last_error()) . "\n";
+        break;
     } else if ($sock_num > 0) {
         foreach ($read_sock as $s) {
             $str = trim(@socket_read($s, 1024));
@@ -77,8 +78,8 @@ while (!empty($sockets)) {
             }
             socket_close($s);
         }
-        $sockets = array_diff($sockets, $read_sock);
     }
+    $sockets = array_diff($sockets, $read_sock);
 }
 file_put_contents('./data/ssr.json', json_encode($ssr));
 file_put_contents('./data/last.date', date("y-m-d H:i:s"));

@@ -17,7 +17,7 @@ class Handler(socketserver.BaseRequestHandler):
         config = base.get_config()
         try:
             if PY3:
-                data = json.loads(str(conn.recv(1024), encoding='utf-8').strip())
+                data = json.loads(base.str_auto(conn.recv(1024)).strip())
             else:
                 data = json.loads(conn.recv(1024).strip())
             if 'token' not in data:
@@ -51,7 +51,7 @@ class Handler(socketserver.BaseRequestHandler):
                                 for ss in config['ss_list']:
                                     if data['remarks'] == ss['remarks']:
                                         flag = True
-                                        ssurl = SSR.ssr2URL(ss)
+                                        ssurl = SSR.ss2URL(ss)
                                         if ssurl is not False:
                                             ssdata = base.get_data(base.get_data(ssurl, ss['remarks']),
                                                                    config['server']['host'])

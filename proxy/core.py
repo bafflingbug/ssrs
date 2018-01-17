@@ -9,7 +9,7 @@ import proxy.reg as reg
 
 
 def reg_thread():
-    time.sleep(60)
+    time.sleep(20)
     reg.reg()
 
 
