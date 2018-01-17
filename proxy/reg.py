@@ -23,7 +23,7 @@ def reg():
             {'port': config['server']['port'], "host": config['server']['host'], 'token': config['token']})
         req = urllib2.Request(config['url'] + '/api/reg.php', parm)
         res = urllib2.urlopen(req)
-    s = str(res.read())
+    s = base.str_auto(res.read())
     print(s)
     if s.find('601') != -1:
         pass

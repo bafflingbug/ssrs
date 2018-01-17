@@ -42,7 +42,7 @@ if ($_REQUEST['pw'] === null) {
         if ($result = @socket_connect($socket, $host, (int)$reg[$host]) !== false) {
             $data = json_encode(array('command' => $command, 'remarks' => $remarks, 'token' => $config['token']));
             @socket_write($socket, $data, strlen($data));
-            $str = trim(@socket_read($s, 1024));
+            $str = trim(@socket_read($socket, 1024));
             if ($str !== '') {
                 $data = json_decode($str, true);
                 if ($data['status'] === 202) {

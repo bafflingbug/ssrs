@@ -17,6 +17,7 @@ if ($_POST['token'] === null) {
         $reg_s = json_encode($reg);
         file_put_contents('./data/reg.json', $reg_s);
         echo '601';
+        $isReg = true;
         include "./all.php";
     } catch (Exception $e) {
         echo '602:' . $e;

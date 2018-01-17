@@ -49,7 +49,7 @@ def all():
 def ssr2URL(ssr):
     group = base.get_group()
     config = base.get_config()
-    with open(ssr['config_file'], 'r') as ssr_config_file:
+    with base.open_auto(ssr['config_file'], 'r') as ssr_config_file:
         ssr_config = json.load(ssr_config_file)
     if not port_open(ssr_config['server_port']):
         restart(ssr['restart'])
@@ -64,8 +64,8 @@ def ssr2URL(ssr):
     if 'remarks' in ssr.keys() and not ssr['remarks'] == '':
         param_str += '&remarks=' + base64.urlsafe_b64encode(ssr['remarks'].encode()).decode().rstrip('=')
     param_str += '&group=' + base64.urlsafe_b64encode(group.encode()).decode().rstrip('=')
-    main_part = config['server']['host'] + ':' + str(ssr_config['server_port']) + ':' + ssr_config['protocol'] + ':' + ssr_config[
-        'method'] + ':' + ssr_config['obfs'] + ':' + base64.urlsafe_b64encode(
+    main_part = config['server']['host'] + ':' + str(ssr_config['server_port']) + ':' + ssr_config[
+        'protocol'] + ':' + ssr_config['method'] + ':' + ssr_config['obfs'] + ':' + base64.urlsafe_b64encode(
         ssr_config['password'].encode()).decode().rstrip('=')
     b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
     return 'ssr://' + b64 + '\n'
@@ -74,7 +74,7 @@ def ssr2URL(ssr):
 def ss2URL(ss):
     group = base.get_group()
     config = base.get_config()
-    with open(ss['config_file'], 'r') as ss_config_file:
+    with base.open_auto(ss['config_file'], 'r') as ss_config_file:
         ss_config = json.load(ss_config_file)
     if not port_open(ss_config['server_port']):
         restart(ss['restart'])
@@ -85,7 +85,8 @@ def ss2URL(ss):
     if 'remarks' in ss.keys() and not ss['remarks'] == '':
         param_str += '&remarks=' + base64.urlsafe_b64encode(ss['remarks'].encode()).decode().rstrip('=')
     param_str += '&group=' + base64.urlsafe_b64encode(group.encode()).decode().rstrip('=')
-    main_part = config['server']['host'] + ':' + str(ss_config['server_port']) + ':' + 'origin' + ':' + ss_config[
-        'method'] + ':' + 'plain' + ':' + base64.urlsafe_b64encode(ss_config['password'].encode()).decode().rstrip('=')
+    main_part = config['server']['host'] + ':' + str(ss_config['server_port']) + ':' + 'origin' + ':' + \
+                ss_config['method'] + ':' + 'plain' + ':' + base64.urlsafe_b64encode(
+        ss_config['password'].encode()).decode().rstrip('=')
     b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
     return 'ssr://' + b64 + '\n'
