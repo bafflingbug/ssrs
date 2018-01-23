@@ -97,7 +97,13 @@ def get_group():
             res = request.urlopen(con['url'] + '/api/group.php')
         else:
             res = urllib2.urlopen(con['url'] + '/api/group.php')
-        return str_auto(res.read())
+        group = str_auto(res.read())
+        return group
+
+
+def clean_group():
+    global group
+    group = None
 
 
 def get_data(value, key):
