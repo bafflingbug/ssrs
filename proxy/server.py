@@ -28,54 +28,26 @@ class Handler(socketserver.BaseRequestHandler):
                     base.err_log(302, 'socket缺少command字段')
                     conn.sendall(base.get_send_buf(302))
                 elif data['command'] == 101:
-                    data = base.get_data(SSR.all(), config['server']['host'])
-                    conn.sendall(base.get_send_buf(201, base.get_data(data, 'data')))
+                    res_data, res_status = base.get_data(SSR.s_101(), config['server']['host'])
+                    if res_status == 201:
+                        conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'data')))
+                    else:
+                        conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'err')))
                 elif data['command'] == 102:
                     if 'remarks' in data:
-                        if data['remarks'] is not None:
-                            flag = False
-                            for ssr in config['ssr_list']:
-                                if data['remarks'] == ssr['remarks']:
-                                    flag = True
-                                    ssrurl = SSR.ssr2URL(ssr)
-                                    if ssrurl is not False:
-                                        ssrdata = base.get_data(base.get_data(ssrurl, ssr['remarks']),
-                                                                config['server']['host'])
-                                        conn.sendall(base.get_send_buf(202, base.get_data(ssrdata, 'data')))
-                                    else:
-                                        conn.sendall(base.get_send_buf(501,
-                                                                       base.get_data('SSR进程无法运行:' + ssr['remarks'],
-                                                                                     'err')))
-                                    break
-                            if flag is False:
-                                for ss in config['ss_list']:
-                                    if data['remarks'] == ss['remarks']:
-                                        flag = True
-                                        ssurl = SSR.ss2URL(ss)
-                                        if ssurl is not False:
-                                            ssdata = base.get_data(base.get_data(ssurl, ss['remarks']),
-                                                                   config['server']['host'])
-                                            conn.sendall(base.get_send_buf(202, base.get_data(ssdata, 'data')))
-                                        else:
-                                            conn.sendall(
-                                                base.get_send_buf(501, base.get_data('SS进程无法运行:' + ss['remarks'],
-                                                                                     'err')))
-                                        break
-                            if flag is False:
-                                base.err_log(403, '未找到名为' + data['remarks'] + '的SS/SSR进程')
-                                conn.sendall(base.get_send_buf(403, base.get_data(data['remarks'], 'err')))
+                        res_data, res_status = SSR.s_102(data['remarks'])
+                        if res_status == 202:
+                            conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'data')))
                         else:
-                            base.err_log(403, '未找到名为None的SS/SSR进程')
-                            conn.sendall(base.get_send_buf(403, base.get_data('None', 'err')))
+                            conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'err')))
                     else:
                         base.err_log(303, 'socket缺少remarks字段')
                         conn.sendall(base.get_send_buf(303))
                 else:
                     base.err_log(402, 'command不正确:' + data['command'] if data['command'] is not None else 'None')
                     conn.sendall(
-                        base.get_send_buf(402,
-                                          base.get_data(data['command'] if data['command'] is not None else 'None',
-                                                        'err')))
+                        base.get_send_buf(402, base.get_data(data['command'] if data['command'] is not None else 'None',
+                                                             'err')))
             else:
                 base.err_log(401, 'token不正确:' + data['token'] if data['token'] is not None else 'None')
                 conn.sendall(
