@@ -23,7 +23,7 @@ def port_open(port):
         return False
 
 
-def all():
+def s_101():
     config = base.get_config()
     remarks = set()
     data = dict()
@@ -35,6 +35,7 @@ def all():
                 data[ssr['remarks']] = ssrurl
         else:
             base.err_log(502, '存在相同remarks的SS/SSR进程:' + ssr['remarks'])
+            return '存在相同remarks的SS/SSR进程:' + ssr['remarks'], 502
     for ss in config['ss_list']:
         if ss['remarks'] not in remarks:
             remarks.add(ss['remarks'])
@@ -43,7 +44,36 @@ def all():
                 data[ss['remarks']] = ssurl
         else:
             base.err_log(502, '存在相同remarks的SS/SSR进程:' + ss['remarks'])
-    return data
+            return '存在相同remarks的SS/SSR进程:' + ss['remarks'], 502
+    return data, 201
+
+
+def s_102(remarks):
+    if remarks is not None:
+        config = base.get_config()
+        for ssr in config['ssr_list']:
+            if remarks == ssr['remarks']:
+                ssrurl = ssr2URL(ssr)
+                if ssrurl is not False:
+                    ssrdata = base.get_data(base.get_data(ssrurl, ssr['remarks']), config['server']['host'])
+                    return ssrdata, 202
+                else:
+                    return 'SSR进程无法运行:' + remarks, 501
+                break
+        for ss in config['ss_list']:
+            if remarks == ss['remarks']:
+                ssurl = ss2URL(ss)
+                if ssurl is not False:
+                    ssdata = base.get_data(base.get_data(ssurl, ss['remarks']), config['server']['host'])
+                    return ssdata, 202
+                else:
+                    return 'SS进程无法运行:' + remarks, 501
+                    break
+        base.err_log(403, '未找到名为' + remarks + '的SS/SSR进程')
+        return '未找到名为' + remarks + '的SS/SSR进程', 403
+    else:
+        base.err_log(403, '未找到名为None的SS/SSR进程')
+        return '未找到名为None的SS/SSR进程', 403
 
 
 def ssr2URL(ssr):
