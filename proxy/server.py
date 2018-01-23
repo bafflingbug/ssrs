@@ -28,7 +28,8 @@ class Handler(socketserver.BaseRequestHandler):
                     base.err_log(302, 'socket缺少command字段')
                     conn.sendall(base.get_send_buf(302))
                 elif data['command'] == 101:
-                    res_data, res_status = base.get_data(SSR.s_101(), config['server']['host'])
+                    res_data, res_status = SSR.s_101()
+                    res_data = base.get_data(res_data, config['server']['host'])
                     if res_status == 201:
                         conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'data')))
                     else:
@@ -36,6 +37,7 @@ class Handler(socketserver.BaseRequestHandler):
                 elif data['command'] == 102:
                     if 'remarks' in data:
                         res_data, res_status = SSR.s_102(data['remarks'])
+                        res_data = base.get_data(res_data, config['server']['host'])
                         if res_status == 202:
                             conn.sendall(base.get_send_buf(res_status, base.get_data(res_data, 'data')))
                         else:
@@ -57,3 +59,5 @@ class Handler(socketserver.BaseRequestHandler):
             import traceback
             base.err_log(500, traceback.format_exc())
             conn.sendall(base.get_send_buf(500, base.get_data('未知的的异常', 'err')))
+        finally:
+            base.clean_group()
