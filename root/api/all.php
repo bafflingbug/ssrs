@@ -59,7 +59,9 @@ while (!empty($sockets)) {
         break;
     } else if ($sock_num > 0) {
         foreach ($read_sock as $s) {
-            $str = trim(@socket_read($s, 1024));
+            $str = trim(@socket_read($s, 4096));
+            sleep(1);
+            socket_close($s);
             if ($str !== '') {
                 $data = json_decode($str, true);
                 if ($data['status'] === 201) {
@@ -76,7 +78,6 @@ while (!empty($sockets)) {
                     logdata($data['status'] . ":" . $data['err']);
                 }
             }
-            socket_close($s);
         }
     }
     $sockets = array_diff($sockets, $read_sock);

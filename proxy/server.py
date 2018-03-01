@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import json
+import time
 import proxy.base as base
 import proxy.ssr as SSR
 from proxy.py3 import PY3
@@ -60,4 +61,5 @@ class Handler(socketserver.BaseRequestHandler):
             base.err_log(500, traceback.format_exc())
             conn.sendall(base.get_send_buf(500, base.get_data('未知的的异常', 'err')))
         finally:
+            time.sleep(3)
             base.clean_group()
