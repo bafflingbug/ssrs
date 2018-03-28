@@ -13,15 +13,16 @@
 ### 部署方式
 - 中介服务器的部署
     1. 拷贝root目录下文件到主服务器
-    2. 修改`config.yaml`配置文件
-    3. 添加计划任务(可选)
+    2. 对~/api/data里面的所有文件设置写权限
+    3. 修改`config.yaml`配置文件
+    4. 添加计划任务(可选)
        1. 控制台输入`crontab -e`
        2. 输入
         ```
             0 * * * * cd /项目路径;php ./all.php &
         ```
-    4. 执行`service crond restart`
-    5. 配置Nginx/apache等Web服务器
+    5. 执行`service crond restart`
+    6. 配置Nginx/apache等Web服务器
 - 代理服务器的部署
     1. 将proxy目录下的拷贝到部署SSR的服务器
     2. 修改`config.yaml`配置文件
