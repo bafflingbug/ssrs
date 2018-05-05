@@ -1,18 +1,11 @@
-import json
 import os
 
 
 def load_plugins(app):
     plugins_dir = os.path.dirname(__file__) + '/plugins/'
-    with open(plugins_dir + 'plugins.json', 'r') as f:
-        try:
-            j = json.load(f)
-        except json.JSONDecodeError as e:
-            raise e
-        if 'plugins' in j:
-            plugins = j['plugins']
-        else:
-            raise Exception('plugins.json not find \'plugins\'')
+    plugins = os.listdir(plugins_dir)
     for plugin in plugins:
-        p = __import__('src.plugins.%s.main' % plugin, fromlist=['blueprint'])
-        app.register_blueprint(p.blueprint, url_prefix='/' + plugin)
+        if os.path.isdir(plugins_dir + plugin) and plugin[0:2] != '__':
+            p = __import__('src.plugins.%s' % plugin, fromlist=['blueprint'])
+            if p.blueprint:
+                app.register_blueprint(p.blueprint, url_prefix='/' + plugin)
