@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import traceback
 
 import requests
 import yaml
-import base64
-from flask import Blueprint, json, request
+from flask import Blueprint, json, current_app
 from .tools import safe_get, safe_value
 from .ssr import SSR
 
-blueprint = Blueprint(os.path.dirname(__file__), __name__)
-
-path = os.path.dirname(__file__)
+path = os.path.dirname(os.path.abspath(__file__))
+blueprint = Blueprint(os.path.basename(path), __name__)
 
 config = None
 group = None
@@ -23,16 +22,12 @@ def index():
     try:
         url_list = ssr_load()
         if url_list is None:
-            return json.dumps({'code': -100, 'msg': 'not find config'})
-        if 'not_base64' in request.args and int(request.args['not_base64']) == 1:
-            return json.dumps({'code': 0, 'data': {'url': url_list}, 'msg': 0})
-        else:
-            if len(url_list) > 0:
-                ret = '\n'.join(url_list)
-                return base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
-        return ''
+            return json.dumps({'code': 100, 'msg': 'no SSR url'})
+        return json.dumps({'code': 0, 'data': {'url': url_list}, 'msg': 0})
+        # base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
     except Exception as e:
-        return json.dumps({'code': -500, 'msg': ' '.join(e.args)})
+        current_app.logger.error(traceback.format_exc())
+        return json.dumps({'code': -500, 'msg': repr(e)})
 
 
 @blueprint.route('/config/reload')
@@ -73,13 +68,15 @@ def ssr_load():
     g = get_group()
     conf = get_config()
     if conf is None:
-        return None
+        raise ValueError('not find config')
     services = safe_get(conf, 'ssr')
     if services is None:
-        return None
+        raise ValueError('not find \'ssr\' in config')
     url = []
     for service in services:
         con = safe_get(service, 'config')
+        if not con and con == '':
+            raise ValueError('SSR config not find')
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
@@ -91,11 +88,14 @@ def ssr_load():
 
 
 def reg(url, h, p, t):
-    requests.post(url, json=json.dumps({'token': t, 'host': h, 'port': p}))
+    global path
+    requests.post(url, json=json.dumps({'token': t, 'url': 'http://%s:%d/%s/' % (h, p, os.path.basename(path))}))
 
 
 def get_group_from_url(url):
     req = requests.get(url)
+    if not req:
+        return 'default_group'
     j = req.json()
     if 'code' not in j and j['code'] != 0:
         return 'default_group'
@@ -128,8 +128,8 @@ def init():
         token = safe_value(safe_get(conf, 'port'), '')
         if 'reg_server' in conf and conf['reg_server']:
             if re.match(r'^(?P<protocol>.*?)://(?P<host>[1-9a-zA-z.]*?)(?::(?P<port>\d{1,5}))?/(?P<path>.*?)?$',
-                        conf['reg_url']) is None:
-                raise ValueError('reg_url not like protocol://host[:port]/path')
+                        conf['reg_server']) is None:
+                raise ValueError('\'reg_server\' not like protocol://host[:port]/path')
             reg(conf['reg_server'] + 'reg', host, port, token)
             g = get_group_from_url(conf['reg_server'] + 'group')
             set_group(g)
@@ -137,3 +137,6 @@ def init():
             set_group(safe_value(safe_get(conf, 'group'), 'default_group'))
     except Exception as e:
         raise e
+
+
+init()
