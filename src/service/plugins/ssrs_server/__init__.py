@@ -58,18 +58,21 @@ def index():
 
 @blueprint.route('/reg', methods=['POST'])
 def reg():
-    conf = get_config()
-    if not conf or 'token' not in conf:
-        return flask.json.dumps({'code': -500, 'msg': 'no config'})
-    args = flask.json.loads(request.json)
-    if 'server' not in args or 'url' not in args or 'token' not in args:
-        return flask.json.dumps({'code': -100, 'msg': 'Missing parameters'})
-    if args['token'] != conf['token']:
-        return flask.json.dumps({'code': -101, 'msg': 'token error'})
-    add_ssr(args['server'], args['url'])
-    server(args['server'])
-    save_data()
-    return flask.json.dumps({'code': 0, 'msg': ''})
+    try:
+        conf = get_config()
+        if not conf:
+            return flask.json.dumps({'code': -500, 'msg': 'no config'})
+        args = flask.json.loads(request.json)
+        if 'server' not in args or 'url' not in args:
+            return flask.json.dumps({'code': -100, 'msg': 'Missing parameters'})
+        if args.get('token', '') != conf.get('token', ''):
+            return flask.json.dumps({'code': -101, 'msg': 'token error'})
+        add_ssr(args['server'], args['url'])
+        server(args['server'])
+        save_data()
+        return flask.json.dumps({'code': 0, 'msg': ''})
+    except Exception as e:
+        return flask.json.dumps({'code': -500, 'msg': repr(e)})
 
 
 @blueprint.route('/group')
@@ -178,6 +181,10 @@ def save_data():
 
 
 def get(url):
+    conf = get_config()
+    if conf is None:
+        return None
+    url += '?token=%s' % (conf.get('token', ''),)
     req = requests.get(url)
     if not req:
         return None

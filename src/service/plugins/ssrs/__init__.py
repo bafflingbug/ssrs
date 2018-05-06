@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import re
 import time
 import traceback
-
+from multiprocessing import Process
 import requests
 import yaml
-from flask import Blueprint, json, current_app
+from flask import Blueprint, json, current_app, request
 from .tools import safe_get, safe_value
 from .ssr import SSR
 
@@ -20,11 +19,15 @@ config = None
 @blueprint.route('/')
 def index():
     try:
+        conf = get_config()
+        if conf is None:
+            return json.dumps({'code': -500, 'msg': 'no config'})
+        if request.args.get('token', '') != conf.get('token', ''):
+            return json.dumps({'code': -101, 'msg': 'token error'})
         url_list = ssr_load()
         if url_list is None:
             return json.dumps({'code': 100, 'msg': 'no SSR url'})
         return json.dumps({'code': 0, 'data': {'urls': url_list}, 'msg': 0})
-        # base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
         return json.dumps({'code': -500, 'msg': repr(e)})
@@ -36,6 +39,12 @@ def config_reload():
         return json.dumps({'code': 0, 'msg': ''})
     else:
         return json.dumps({'code': -100, 'msg': 'yaml decode error'})
+
+
+@blueprint.route('/reg')
+def reg():
+    init()
+    return json.dumps({'code': 0, 'msg': ''})
 
 
 def load_config():
@@ -80,8 +89,8 @@ def ssr_load():
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        remarks = safe_value(safe_get(safe_get(config, 'ssr'), 'remarks'), 'default')
-        restart = safe_value(safe_get(safe_get(config, 'ssr'), 'restart'), '')
+        remarks = safe_value(safe_get(service, 'remarks'), 'default')
+        restart = safe_value(safe_get(service, 'restart'), '')
         ssr = SSR(con, host, g, remarks, restart)
         url.extend(ssr.get_services())
     return url
@@ -89,7 +98,9 @@ def ssr_load():
 
 def reg(url, h, s, t):
     global path
+    time.sleep(10)
     requests.post(url, json=json.dumps({'token': t, 'url': '%s/%s/' % (s, os.path.basename(path)), 'server': h}))
+    exit(0)
 
 
 def get_group(url):
@@ -117,11 +128,8 @@ def init():
         server = safe_value(safe_get(conf, 'server'), 'http://127.0.0.1:80')
         token = safe_value(safe_get(conf, 'token'), '')
         if 'reg_server' in conf and conf['reg_server']:
-            pid = os.fork()
-            if pid == 0:
-                time.sleep(10)
-                reg(conf['reg_server'] + 'reg', host, server, token)
-                exit()
+            p = Process(target=reg, args=(conf['reg_server'] + 'reg', host, server, token))
+            p.start()
     except Exception as e:
         raise e
 
