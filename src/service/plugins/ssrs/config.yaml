@@ -1,0 +1,11 @@
+host:
+server:
+reg_server:
+token:
+ssr:
+  - config:
+    remarks:
+    restart:
+  - config:
+    remarks:
+    restart:
