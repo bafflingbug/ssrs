@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 
 
@@ -7,10 +9,12 @@ def load_plugins(app):
     for plugin in plugins:
         if os.path.isdir(plugins_dir + plugin) and plugin[0:2] != '__':
             try:
-                p = __import__('src.plugins.%s' % plugin, fromlist=['blueprint'])
-            except ImportError:
+                p = __import__('plugins.%s' % plugin, fromlist=['blueprint'])
+            except ImportError as e:
                 app.logger.error('Error on load plugin %s' % plugin)
-            if p.blueprint:
+                print(e)
+                return
+            if p and p.blueprint:
                 try:
                     app.register_blueprint(p.blueprint, url_prefix='/' + plugin)
                 except TypeError:

@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 def safe_value(value, default, allow_null=True, in_list=None, type_check=True):
     if in_list and default not in in_list:
         raise ValueError('defaule value not in in_list')
