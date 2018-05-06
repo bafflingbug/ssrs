@@ -4,6 +4,7 @@ import base64
 import json
 import copy
 import socket
+import subprocess
 
 from .tools import safe_get, safe_value
 
@@ -18,12 +19,17 @@ class SSR:
 
         def port_open(self):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                s.connect(('127.0.0.1', int(self.conf['port'])))
-                s.shutdown(2)
-                return True
-            except socket.error:
-                return False
+            for i in range(2):
+                try:
+                    s.connect(('127.0.0.1', int(self.conf['port'])))
+                    s.shutdown(2)
+                    return True
+                except socket.error:
+                    self.restart()
+            return False
+
+        def restart(self):
+            return subprocess.call(self.conf['restart'], shell=True)
 
         def get_url(self):
             if not self.port_open():

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import time
 import traceback
 
 import requests
@@ -14,7 +15,6 @@ path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
 
 config = None
-group = None
 
 
 @blueprint.route('/')
@@ -23,7 +23,7 @@ def index():
         url_list = ssr_load()
         if url_list is None:
             return json.dumps({'code': 100, 'msg': 'no SSR url'})
-        return json.dumps({'code': 0, 'data': {'url': url_list}, 'msg': 0})
+        return json.dumps({'code': 0, 'data': {'urls': url_list}, 'msg': 0})
         # base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
@@ -65,8 +65,8 @@ def get_host():
 
 
 def ssr_load():
-    g = get_group()
     conf = get_config()
+    g = get_group(conf['reg_server'] + 'group')
     if conf is None:
         raise ValueError('not find config')
     services = safe_get(conf, 'ssr')
@@ -87,12 +87,12 @@ def ssr_load():
     return url
 
 
-def reg(url, h, p, t):
+def reg(url, h, s, t):
     global path
-    requests.post(url, json=json.dumps({'token': t, 'url': 'http://%s:%d/%s/' % (h, p, os.path.basename(path))}))
+    requests.post(url, json=json.dumps({'token': t, 'url': '%s/%s/' % (s, os.path.basename(path)), 'server': h}))
 
 
-def get_group_from_url(url):
+def get_group(url):
     req = requests.get(url)
     if not req:
         return 'default_group'
@@ -106,16 +106,6 @@ def get_group_from_url(url):
             return 'default_group'
 
 
-def set_group(g):
-    global group
-    group = g
-
-
-def get_group():
-    global group
-    return group if group else 'default_group'
-
-
 def init():
     try:
         conf = get_config()
@@ -124,17 +114,14 @@ def init():
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        port = safe_value(safe_get(conf, 'port'), 80)
-        token = safe_value(safe_get(conf, 'port'), '')
+        server = safe_value(safe_get(conf, 'server'), 'http://127.0.0.1:80')
+        token = safe_value(safe_get(conf, 'token'), '')
         if 'reg_server' in conf and conf['reg_server']:
-            if re.match(r'^(?P<protocol>.*?)://(?P<host>[1-9a-zA-z.]*?)(?::(?P<port>\d{1,5}))?/(?P<path>.*?)?$',
-                        conf['reg_server']) is None:
-                raise ValueError('\'reg_server\' not like protocol://host[:port]/path')
-            reg(conf['reg_server'] + 'reg', host, port, token)
-            g = get_group_from_url(conf['reg_server'] + 'group')
-            set_group(g)
-        else:
-            set_group(safe_value(safe_get(conf, 'group'), 'default_group'))
+            pid = os.fork()
+            if pid == 0:
+                time.sleep(10)
+                reg(conf['reg_server'] + 'reg', host, server, token)
+                exit()
     except Exception as e:
         raise e
 
