@@ -20,9 +20,11 @@
 > 3. 允许添加新的插件,参见 [自定义插件](#自定义插件)
 
 ### 部署方式
-1. 拷贝src到服务器
+1. 拷贝src目录到服务器
+2. 拷贝requirements.txt到服务器
+3. 执行`pip install -r requirements.txt`安装依赖
 2. 到`src/service/plugins`启用/禁用插件（禁用方式为删除或在文件夹前加入两个下划线`__`）
-3. 启动服务器
+3. 使用gunicorn或其他wsgi来启动服务器（一条建议的命令`gunicorn -w 1 -b 0.0.0.0:80 -t 30 --threads 4 -D main:app`）
 
 ### config.yaml配置文件
 - config.yaml在相应的插件目录下
