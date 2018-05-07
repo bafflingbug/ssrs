@@ -31,7 +31,7 @@ def index():
         print(pw)
         return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
-    if int(time.time() - d['last_time']) <= 60 * 5:
+    if int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
     ths = []
     for key, value in d['SSR'].items():
@@ -54,8 +54,9 @@ def index():
         urls_list.extend(urls)
     ret = '\n'.join(urls_list)
     set_time()
+    d['last'] = base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
     save_data()
-    return base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
+    return d['last']
 
 
 @blueprint.route('/reg', methods=['POST'])
@@ -136,12 +137,12 @@ def get_data():
     global data
     if data is None or type(data) is not dict:
         data = {
-            'last_time': None,
+            'last_time': 0,
             'last': '',
             'SSR': {}
         }
-    if 'last_time' not in data:
-        data['last_time'] = None
+    if 'last_time' not in data or data['last_time']:
+        data['last_time'] = 0
     if 'last' not in data:
             data['last'] = ''
     if 'SSR' not in data or type(data['SSR']) is not dict:
@@ -238,3 +239,6 @@ class ResultThread(Thread):
 
     def get_name(self):
         return self.name
+
+
+init()
