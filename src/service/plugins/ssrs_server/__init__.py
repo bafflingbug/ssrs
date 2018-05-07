@@ -31,6 +31,8 @@ def index():
         print(pw)
         return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
+    if int(time.time() - d['last_time']) <= 60 * 5:
+        return d['last']
     ths = []
     for key, value in d['SSR'].items():
         ths.append(ResultThread(get, (value['url'],), name=key))
@@ -68,7 +70,7 @@ def reg():
         if args.get('token', '') != conf.get('token', ''):
             return flask.json.dumps({'code': -101, 'msg': 'token error'})
         add_ssr(args['server'], args['url'])
-        server(args['server'])
+        index()
         save_data()
         return flask.json.dumps({'code': 0, 'msg': ''})
     except Exception as e:
@@ -135,10 +137,13 @@ def get_data():
     if data is None or type(data) is not dict:
         data = {
             'last_time': None,
-            'SSR': {},
+            'last': '',
+            'SSR': {}
         }
     if 'last_time' not in data:
         data['last_time'] = None
+    if 'last' not in data:
+            data['last'] = ''
     if 'SSR' not in data or type(data['SSR']) is not dict:
         data['SSR'] = {}
     return data
