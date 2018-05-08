@@ -22,14 +22,15 @@ data = None
 
 
 @blueprint.route('/', methods=['GET'])
-def index():
+def index(not_net=False):
     pw = request.args.get('password', request.args.get('pw', None))
     conf = get_config()
-    if not conf or 'password' not in conf:
-        return flask.json.dumps({'code': -500, 'msg': 'no config'})
-    if not pw or md5_updata(md5_updata(pw)) != conf['password']:
-        print(pw)
-        return flask.json.dumps({'code': -300, 'msg': 'password error'})
+    if not not_net:
+        if not conf or 'password' not in conf:
+            return flask.json.dumps({'code': -500, 'msg': 'no config'})
+        if not pw or md5_updata(md5_updata(pw)) != conf['password']:
+            print(pw)
+            return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
     if int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
@@ -71,7 +72,7 @@ def reg():
         if args.get('token', '') != conf.get('token', ''):
             return flask.json.dumps({'code': -101, 'msg': 'token error'})
         add_ssr(args['server'], args['url'])
-        index()
+        index(not_net=True)
         save_data()
         return flask.json.dumps({'code': 0, 'msg': ''})
     except Exception as e:
@@ -88,13 +89,14 @@ def group():
 
 
 @blueprint.route('/server/<ip>', methods=['GET'])
-def server(ip):
+def server(ip, not_net=False):
     pw = request.args.get('password', request.args.get('pw', None))
     conf = get_config()
-    if not conf or 'password' not in conf:
-        return flask.json.dumps({'code': -500, 'msg': 'no config'})
-    if not pw or pw != conf['password']:
-        return flask.json.dumps({'code': -300, 'msg': 'password error'})
+    if not not_net:
+        if not conf or 'password' not in conf:
+            return flask.json.dumps({'code': -500, 'msg': 'no config'})
+        if not pw or pw != conf['password']:
+            return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
     if ip in d['SSR'].keys():
         urls = get(d['SSR'][ip])
