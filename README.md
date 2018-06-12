@@ -35,7 +35,7 @@
     password: 696d29e0940a4957748fe3fc9efd22a3        # 客户连接中介服务器使用的password，此处填写值为原始密钥经过[两次]md5加密以后的值(32位/小写/强验证)
     ```
 
-- ssrs插件的config.json
+- ssrs插件的config.yaml
     ```
     host: 0.0.0.0                                     # 本机公网
     server: http://127.0.0.1:80                       # 本机web服务器地址,用于ssrs_server访问ssrs(如果部署在同一台机器上可以使用环回地址)
