@@ -24,7 +24,7 @@
 2. 拷贝requirements.txt到服务器
 3. 执行`pip install -r requirements.txt`安装依赖
 2. 到`src/service/plugins`启用/禁用插件（禁用方式为删除或在文件夹前加入两个下划线`__`）
-3. 使用gunicorn或其他wsgi来启动服务器（一条建议的命令`gunicorn -w 1 -b 0.0.0.0:80 -t 30 --threads 4 -D main:app`）
+3. 使用gunicorn或其他wsgi来启动服务器（一条建议的命令`gunicorn -w 1 -b 0.0.0.0:80 -t 30 --threads 4 --max-requests 50 --max-requests-jitter 20 -D main:app`）
 
 ### config.yaml配置文件
 - config.yaml在相应的插件目录下
