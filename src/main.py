@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from gevent import monkey
+monkey.patch_all()
+
 import logging
 import os
-
 from flask import Flask
-
 from service.core import load_plugins
 
 app = Flask(__name__)
@@ -19,6 +20,7 @@ app.logger.addHandler(fh)
 load_plugins(app)
 
 if __name__ == '__main__':
-    from werkzeug.contrib.fixers import ProxyFix
-    app.wsgi_app = ProxyFix(app.wsgi_app)
-    app.run(debug=False, host='0.0.0.0', port=80)
+    from gevent.pywsgi import WSGIServer
+
+    server = WSGIServer(('127.0.0.1', 5000), app)
+    server.serve_forever()
