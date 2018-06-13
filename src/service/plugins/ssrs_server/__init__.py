@@ -193,7 +193,7 @@ def get(url):
     if conf is None:
         return None
     url += '?token=%s' % (conf.get('token', ''),)
-    req = requests.get(url)
+    req = requests.get(url, timeout=60)
     if not req:
         return None
     try:
