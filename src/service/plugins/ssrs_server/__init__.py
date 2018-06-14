@@ -29,7 +29,6 @@ def index(not_net=False):
         if not conf or 'password' not in conf:
             return flask.json.dumps({'code': -500, 'msg': 'no config'})
         if not pw or md5_updata(md5_updata(pw)) != conf['password']:
-            print(pw)
             return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
     if int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
