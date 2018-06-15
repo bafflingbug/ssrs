@@ -24,6 +24,7 @@ data = None
 @blueprint.route('/', methods=['GET'])
 def index(not_net=False):
     pw = request.args.get('password', request.args.get('pw', None))
+    cache = str(request.args.get('cache', '1'))
     conf = get_config()
     if not not_net:
         if not conf or 'password' not in conf:
@@ -31,7 +32,7 @@ def index(not_net=False):
         if not pw or md5_updata(md5_updata(pw)) != conf['password']:
             return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
-    if int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
+    if cache == '1' and int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
     ths = []
     for key, value in d['SSR'].items():
@@ -46,7 +47,7 @@ def index(not_net=False):
         ip = th.get_name()
         if urls is None:
             if not d['SSR'][ip]['failed']:
-                d['SSR'][ip]['failed'] = time.time()
+                d['SSR'][ip]['failed'] = int(time.time())
             elif int(time.time() - d['SSR'][ip]['failed']) > 60 * 60 * 10:
                 rm_ssr(ip)
             continue
@@ -55,6 +56,7 @@ def index(not_net=False):
     ret = '\n'.join(urls_list)
     set_time()
     d['last'] = base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
+    d['last_time'] = int(time.time())
     save_data()
     return d['last']
 
@@ -142,7 +144,7 @@ def get_data():
             'last': '',
             'SSR': {}
         }
-    if 'last_time' not in data or data['last_time']:
+    if 'last_time' not in data or type(data['last_time']) != int:
         data['last_time'] = 0
     if 'last' not in data:
             data['last'] = ''
