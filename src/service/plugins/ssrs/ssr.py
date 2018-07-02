@@ -17,7 +17,7 @@ class SSR:
         def update(self, array):
             self.conf.update(array)
 
-        def port_open(self):
+        def port_open(self, first=True):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             for i in range(2):
                 try:
@@ -25,30 +25,34 @@ class SSR:
                     s.shutdown(2)
                     return True
                 except socket.error:
-                    self.restart()
+                    if first:
+                        self.restart()
+                        return self.port_open(first=False)
+                    return False
             return False
 
         def restart(self):
             return subprocess.call(self.conf['restart'], shell=True)
 
-        def get_url(self):
+        def get_data(self):
             if not self.port_open():
-                return ''
-            param_str = 'obfsparam=' + base64.urlsafe_b64encode(self.conf['obfsparam'].encode()).decode().rstrip('=')
-            if self.conf['protoparam'] != '':
-                param_str += '&protoparam=' + base64.urlsafe_b64encode(
-                    self.conf['protoparam'].encode()).decode().rstrip('=')
-            if self.conf['remarks'] != '':
-                param_str += '&remarks=' + base64.urlsafe_b64encode(self.conf['remarks'].encode()).decode().rstrip('=')
-            param_str += '&group=' + base64.urlsafe_b64encode(self.conf['group'].encode()).decode().rstrip('=')
-            main_part = self.conf['host'] + ':' + str(self.conf['port']) + ':' + self.conf[
-                'protocol'] + ':' + self.conf['method'] + ':' + self.conf['obfs'] + ':' + base64.urlsafe_b64encode(
-                self.conf['password'].encode()).decode().rstrip('=')
-            b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
-            return 'ssr://' + b64
+                return None
+            return base64.urlsafe_b64encode(json.dumps(self.conf).encode()).decode()
+            # param_str = 'obfsparam=' + base64.urlsafe_b64encode(self.conf['obfsparam'].encode()).decode().rstrip('=')
+            # if self.conf['protoparam'] != '':
+            #     param_str += '&protoparam=' + base64.urlsafe_b64encode(
+            #         self.conf['protoparam'].encode()).decode().rstrip('=')
+            # if self.conf['remarks'] != '':
+            #     param_str += '&remarks=' + base64.urlsafe_b64encode(self.conf['remarks'].encode()).decode().rstrip('=')
+            # param_str += '&group=' + base64.urlsafe_b64encode(self.conf['group'].encode()).decode().rstrip('=')
+            # main_part = self.conf['host'] + ':' + str(self.conf['port']) + ':' + self.conf[
+            #     'protocol'] + ':' + self.conf['method'] + ':' + self.conf['obfs'] + ':' + base64.urlsafe_b64encode(
+            #     self.conf['password'].encode()).decode().rstrip('=')
+            # b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
+            # return 'ssr://' + b64
 
     def __init__(self, conf, host, group, remarks, restart):
-        self.url_list = []
+        self.data_list = []
         self.conf = conf
         with open(self.conf, 'r') as f:
             try:
@@ -84,13 +88,13 @@ class SSR:
                 array['remarks'] = self.remarks + ('_%d' % port)
                 array['port'] = port
                 service.update(array)
-                url = service.get_url()
+                url = service.get_data()
                 if url is None:
                     continue
-                self.url_list.append(url)
+                self.data_list.append(url)
         else:
             base_service.update({'port': self.config['server_port'], 'password': self.config['password']})
-            url = base_service.get_url()
+            url = base_service.get_data()
             if url is not None:
-                self.url_list.append(url)
-        return self.url_list
+                self.data_list.append(url)
+        return self.data_list
