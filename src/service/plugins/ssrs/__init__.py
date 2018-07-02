@@ -24,10 +24,10 @@ def index():
             return json.dumps({'code': -500, 'msg': 'no config'})
         if request.args.get('token', '') != conf.get('token', ''):
             return json.dumps({'code': -101, 'msg': 'token error'})
-        url_list = ssr_load()
-        if url_list is None:
-            return json.dumps({'code': 100, 'msg': 'no SSR url'})
-        return json.dumps({'code': 0, 'data': {'urls': url_list}, 'msg': 0})
+        ssr_list = ssr_load()
+        if ssr_list is None:
+            return json.dumps({'code': 100, 'msg': 'no SSR'})
+        return json.dumps({'code': 0, 'data': {'data': ssr_list}, 'msg': 0})
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
         return json.dumps({'code': -500, 'msg': repr(e)})
@@ -75,13 +75,13 @@ def get_host():
 
 def ssr_load():
     conf = get_config()
-    g = get_group(conf['reg_server'] + 'group')
+    # g = get_group(conf['reg_server'] + 'group')
     if conf is None:
         raise ValueError('not find config')
     services = safe_get(conf, 'ssr')
     if services is None:
         raise ValueError('not find \'ssr\' in config')
-    url = []
+    sers = []
     for service in services:
         con = safe_get(service, 'config')
         if not con and con == '':
@@ -91,9 +91,9 @@ def ssr_load():
             raise ValueError('\'host\' is config is None')
         remarks = safe_value(safe_get(service, 'remarks'), 'default')
         restart = safe_value(safe_get(service, 'restart'), '')
-        ssr = SSR(con, host, g, remarks, restart)
-        url.extend(ssr.get_services())
-    return url
+        ssr = SSR(con, host, '', remarks, restart)
+        sers.extend(ssr.get_services())
+    return sers
 
 
 def reg(url, h, s, t):

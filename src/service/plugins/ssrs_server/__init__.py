@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import base64
+import hashlib
 import json
 import os
 import time
-import hashlib
 from threading import Thread
 
 import flask
@@ -147,7 +147,7 @@ def get_data():
     if 'last_time' not in data or type(data['last_time']) != int:
         data['last_time'] = 0
     if 'last' not in data:
-            data['last'] = ''
+        data['last'] = ''
     if 'SSR' not in data or type(data['SSR']) is not dict:
         data['SSR'] = {}
     return data
@@ -201,9 +201,37 @@ def get(url):
         j = req.json()
     except json.JSONDecodeError:
         return None
-    if 'code' not in j or j['code'] != 0 or 'data' not in j or 'urls' not in j['data']:
+    if 'code' not in j or j['code'] != 0 or 'data' not in j or 'data' not in j['data']:
         return None
-    return j['data']['urls']
+    urls = []
+    conf = get_config()
+    if 'group' in conf:
+        group = conf['group']
+    else:
+        group = 'default-group'
+    for d in j['data']['data']:
+        try:
+            d = json.loads(base64.urlsafe_b64decode(d).decode())
+            d['group'] = group
+            urls.append(data2url(d))
+        except:
+            continue
+    return urls
+
+
+def data2url(data):
+    param_str = 'obfsparam=' + base64.urlsafe_b64encode(data['obfsparam'].encode()).decode().rstrip('=')
+    if data['protoparam'] != '':
+        param_str += '&protoparam=' + base64.urlsafe_b64encode(
+            data['protoparam'].encode()).decode().rstrip('=')
+    if data['remarks'] != '':
+        param_str += '&remarks=' + base64.urlsafe_b64encode(data['remarks'].encode()).decode().rstrip('=')
+    param_str += '&group=' + base64.urlsafe_b64encode(data['group'].encode()).decode().rstrip('=')
+    main_part = data['host'] + ':' + str(data['port']) + ':' + data[
+        'protocol'] + ':' + data['method'] + ':' + data['obfs'] + ':' + base64.urlsafe_b64encode(
+        data['password'].encode()).decode().rstrip('=')
+    b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
+    return 'ssr://' + b64
 
 
 def md5_updata(a):
