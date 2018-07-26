@@ -57,7 +57,7 @@ class SSR:
         with open(self.conf, 'r') as f:
             try:
                 self.config = json.load(f)
-            except json.JSONDecodeError:
+            except Exception:
                 raise ValueError('SSR config is not json: %s' % conf)
         self.host = host
         self.group = group
@@ -83,9 +83,15 @@ class SSR:
             }
         )
         if 'port_password' in self.config:
-            for port, array in self.config['port_password'].items():
+            for port, data in self.config['port_password'].items():
                 service = copy.deepcopy(base_service)
-                array['remarks'] = self.remarks + ('_%d' % port)
+                if type(data) is str:
+                    array = {'password': data}
+                elif type(data) is dict:
+                    array = data
+                else:
+                    continue
+                array['remarks'] = self.remarks + ('_%s' % str(port))
                 array['port'] = port
                 service.update(array)
                 url = service.get_data()
