@@ -24,7 +24,7 @@
 2. 拷贝requirements.txt到服务器
 3. 执行`pip install -r requirements.txt`安装依赖
 4. 到`src/service/plugins`启用/禁用插件（禁用方式为删除或在文件夹前加入两个下划线`__`）
-5. 使用gunicorn或其他wsgi来启动服务器（一条建议的命令`nohup gunicorn -c gun.conf main:app &>gunicorn.log &`）
+5. 使用gunicorn或其他wsgi来启动服务器（一条建议的命令`gunicorn -c /data/ssrs/gun.conf main:app --chdir /data/ssrs -D`其中`/data/ssrs`为项目路径）
 
 - 一条用于重新加载SSRS配置/重启SSRS的命令：`cat gunicorn.pid |xargs kill -HUP`
 
