@@ -1,0 +1,11 @@
+host:
+server:
+reg_server:
+token:
+v2ray:
+  - config:
+    remarks:
+    restart:
+  - config:
+    remarks:
+    restart:
