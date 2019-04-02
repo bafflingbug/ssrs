@@ -39,7 +39,7 @@ class v2ray:
                 return None
             return base64.urlsafe_b64encode(json.dumps(self.conf).encode()).decode()
 
-    def __init__(self, conf, host, group, remarks, restart):
+    def __init__(self, conf, host, port, remarks, restart):
         self.data_list = []
         self.conf = conf
         with open(self.conf, 'r') as f:
@@ -51,9 +51,9 @@ class v2ray:
             except Exception:
                 raise ValueError('v2ray config is not json: %s' % conf)
         self.host = host
-        self.group = group
         self.remarks = remarks
         self.restart = restart
+        self.port = port
 
     def get_services(self):
         _net = self.config['streamSettings']['network']
@@ -61,29 +61,40 @@ class v2ray:
         _path = ""
         _type = 'none'
         if _net == 'ws':
-            _path = self.config['streamSettings']['network']['wsSettings']['path']
+            _path = self.config['streamSettings']['wsSettings']['path']
         elif _net == 'h2':
-            _path = self.config['streamSettings']['network']['httpSettings']['path']
+            _path = self.config['streamSettings']['httpSettings']['path']
         elif _net == 'tcp':
-            _type = self.config['streamSettings']['network']['tcpSettings']['header']['type']
+            _type = self.config['streamSettings']['tcpSettings']['header']['type']
         elif _net == 'kcp':
-            _type = self.config['streamSettings']['network']['kcpSettings']['header']['type']
+            _type = self.config['streamSettings']['kcpSettings']['header']['type']
         elif _net == 'quic':
-            _type = self.config['streamSettings']['network']['quicSettings']['header']['type']
+            _type = self.config['streamSettings']['quicSettings']['header']['type']
         base_service = v2ray.Service(
             {
                 'v': '2',
                 'add': self.host,
                 'net': _net,
-                'id': self.config['settings']['clients']['id'],
-                'aid': self.config['settings']['clients']['alterId'],
+                'id': '',
+                'aid': 0,
                 'type': _type,
                 'ps': self.remarks,
                 'host': self.host if _net in ('ws', "h2") else "",
                 'path': _path,
                 'tls': _tls,
                 'restart': self.restart,
-                'port': self.config['port']
+                'port': self.config['port'] if self.port is None else self.port
             }
         )
-        return [base_service]
+        for item in self.config['settings']['clients']:
+            service = copy.deepcopy(base_service)
+            a = {
+                'id': item['id'],
+                'aid': item['alterId']
+            }
+            service.update(a)
+            url = service.get_data()
+            if url is None:
+                continue
+            self.data_list.append(url)
+        return self.data_list
