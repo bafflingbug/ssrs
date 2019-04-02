@@ -96,7 +96,7 @@ def ssr_load():
     return sers
 
 
-def reg(url, h, s, t):
+def _reg(url, h, s, t):
     global path
     time.sleep(10)
     requests.post(url, json=json.dumps({'token': t, 'url': '%s/%s/' % (s, os.path.basename(path)), 'server': h}))
@@ -128,7 +128,7 @@ def init():
         server = safe_value(safe_get(conf, 'server'), 'http://127.0.0.1:80')
         token = safe_value(safe_get(conf, 'token'), '')
         if 'reg_server' in conf and conf['reg_server']:
-            p = Process(target=reg, args=(conf['reg_server'] + 'reg', host, server, token))
+            p = Process(target=_reg, args=(conf['reg_server'] + 'reg', host, server, token))
             p.start()
     except Exception as e:
         raise e
