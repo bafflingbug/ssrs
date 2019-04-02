@@ -6,6 +6,7 @@ v2ray:
   - config:
     remarks:
     restart:
+    port:
   - config:
     remarks:
     restart:
