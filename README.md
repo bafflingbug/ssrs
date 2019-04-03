@@ -1,7 +1,11 @@
 > - 此分支为v3.0版本
+> - 目前最新版为v3.5支持生成v2ray订阅（仅N/NG格式）参见[feature/v2ray](https://github.com/bafflingbug/ssrs/tree/feature/v2ray)
 
 # ShadowsocksR-support
 一个在服务器端生成ShadowsockR服务器订阅以及维护进程存活的简单实现
+
+## 下载
+[release](https://github.com/bafflingbug/ssrs/releases)
 
 ### 设计目的
 - 防止因为DNS解析导致SSR服务器ip被BAN
