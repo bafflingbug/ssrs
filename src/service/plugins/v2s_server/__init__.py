@@ -214,7 +214,7 @@ def get(url):
 
 
 def data2url(data):
-    data.pop('restart')
+    # data.pop('restart')
     b64 = base64.urlsafe_b64encode(json.dumps(data).encode()).decode()
     return 'vmess://' + b64
 

@@ -37,6 +37,7 @@ class v2ray:
         def get_data(self):
             if not self.port_open():
                 return None
+            self.conf.pop('restart')
             return base64.urlsafe_b64encode(json.dumps(self.conf).encode()).decode()
 
     def __init__(self, conf, tips, host, remarks, restart):
