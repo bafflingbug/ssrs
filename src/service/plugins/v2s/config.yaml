@@ -7,7 +7,7 @@ v2ray:
     remarks:
     restart:
     tips:
-      - originport:
+      - origin_port:
         port:
         path:
   - config:

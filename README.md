@@ -17,11 +17,16 @@
     - 用于读取ssr/ss配置文件,生成ssr://链接
 2. ssrs_server
     - 用于汇总多个ssrs插件生成的链接,并提供适用于SSR客户端的服务器订阅
+3. v2s
+    - 用于读取v2ray配置文件,生成vmess://链接
+4. v2s_server
+    - 用于汇总多个v2s插件生成的链接,并提供适用于v2ray客户端的服务器订阅
 
 > 关于插件
 > 1. ssrs与ssrs_server需要配合使用
 > 2. ssrs可以与ssrs_server在不同服务器上(设计如此),也可在同一台服务器上
 > 3. 允许添加新的插件,参见 [自定义插件](#自定义插件)
+> 4. v2s和v2s_server同上
 
 ### 部署方式
 1. 拷贝src目录到服务器
@@ -71,7 +76,7 @@
     reg_server: http://example.com/ssrs_server/       # v2s的地址(用于注册一个代理服务器,由于插件名的可变性请带上插件名）
     token: password                                   # 服务器间token，必须和中介服务器相同字段保持一致(弱验证)
     v2ray:
-        - config: /etc/v2ray/config.json         # v2ray进程的配置文件路径(完整路径)
+        - config: /etc/v2ray/config.json              # v2ray进程的配置文件路径(完整路径)
           remarks: v2ray                              # v2ray进程的备注名(请勿使用中文，空格，特殊符号等)
           restart: service v2ray restart              # v2ray进程的重启命令
           tips:                                       # 选填，用来覆盖v2ray服务器配置文件不包含的配置项
@@ -96,7 +101,7 @@
 
 此处user-token为未加密的明文
 
-示例：*http://example.com/ssrs/?pw=password*
+示例：*http://example.com/ssrs_server/?pw=password*
 
 ### 自定义插件
 1. 插件的工作方式

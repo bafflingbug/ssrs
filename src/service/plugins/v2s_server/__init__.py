@@ -49,7 +49,7 @@ def index(not_net=False):
             if not d['v2ray'][ip]['failed']:
                 d['v2ray'][ip]['failed'] = int(time.time())
             elif int(time.time() - d['v2ray'][ip]['failed']) > 60 * 60 * 10:
-                rm_ssr(ip)
+                rm_v2(ip)
             continue
         d['v2ray'][ip]['failed'] = None
         urls_list.extend(urls)
@@ -72,7 +72,7 @@ def reg():
             return flask.json.dumps({'code': -100, 'msg': 'Missing parameters'})
         if args.get('token', '') != conf.get('token', ''):
             return flask.json.dumps({'code': -101, 'msg': 'token error'})
-        add_ssr(args['server'], args['url'])
+        add_v2(args['server'], args['url'])
         index(not_net=True)
         save_data()
         return flask.json.dumps({'code': 0, 'msg': ''})
@@ -105,7 +105,7 @@ def server(ip, not_net=False):
             if not d['v2ray'][ip]['failed']:
                 d['v2ray'][ip]['failed'] = time.time()
             elif int(time.time() - d['v2ray'][ip]['failed']) > 60 * 60 * 10:
-                rm_ssr(ip)
+                rm_v2(ip)
             save_data()
             return ''
         d['v2ray'][ip]['failed'] = None
@@ -166,13 +166,13 @@ def set_time():
     return True
 
 
-def add_ssr(server, url):
+def add_v2(server, url):
     d = get_data()
     d['v2ray'][server] = {'url': url, 'failed': None}
     return True
 
 
-def rm_ssr(server):
+def rm_v2(server):
     d = get_data()
     if server in d['v2ray'].keys():
         d['v2ray'].pop(server)

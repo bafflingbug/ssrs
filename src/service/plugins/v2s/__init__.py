@@ -24,10 +24,10 @@ def index():
             return json.dumps({'code': -500, 'msg': 'no config'})
         if request.args.get('token', '') != conf.get('token', ''):
             return json.dumps({'code': -101, 'msg': 'token error'})
-        ssr_list = ssr_load()
-        if ssr_list is None:
+        v2_list = v2_load()
+        if v2_list is None:
             return json.dumps({'code': 100, 'msg': 'no v2ray'})
-        return json.dumps({'code': 0, 'data': {'data': ssr_list}, 'msg': 0})
+        return json.dumps({'code': 0, 'data': {'data': v2_list}, 'msg': 0})
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
         return json.dumps({'code': -500, 'msg': repr(e)})
@@ -73,7 +73,7 @@ def get_host():
     return host
 
 
-def ssr_load():
+def v2_load():
     conf = get_config()
     # g = get_group(conf['reg_server'] + 'group')
     if conf is None:
@@ -90,7 +90,7 @@ def ssr_load():
             for item in ctips:
                 oport = item['origin_port']
                 i = {}
-                for k, v in item.iteritems():
+                for k, v in item.items():
                     if k != 'origin_port':
                         i[k] = v
                 tips[int(oport)] = i
@@ -101,8 +101,8 @@ def ssr_load():
             raise ValueError('\'host\' is config is None')
         remarks = safe_value(safe_get(service, 'remarks'), 'default')
         restart = safe_value(safe_get(service, 'restart'), '')
-        ssr = v2ray(con, tips, host, remarks, restart)
-        sers.extend(ssr.get_services())
+        v2 = v2ray(con, tips, host, remarks, restart)
+        sers.extend(v2.get_services())
     return sers
 
 
