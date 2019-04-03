@@ -6,7 +6,10 @@ v2ray:
   - config:
     remarks:
     restart:
-    port:
+    tips:
+      - originport:
+        port:
+        path:
   - config:
     remarks:
     restart:

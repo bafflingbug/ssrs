@@ -84,7 +84,16 @@ def ssr_load():
     sers = []
     for service in services:
         con = safe_get(service, 'config')
-        port = safe_get(service, 'port')
+        ctips = safe_get(service, 'tips')
+        tips = {}
+        if ctips is not None:
+            for item in ctips:
+                oport = item['origin_port']
+                i = {}
+                for k, v in item.iteritems():
+                    if k != 'origin_port':
+                        i[k] = v
+                tips[int(oport)] = i
         if not con and con == '':
             raise ValueError('v2ray config not find')
         host = get_host()
@@ -92,7 +101,7 @@ def ssr_load():
             raise ValueError('\'host\' is config is None')
         remarks = safe_value(safe_get(service, 'remarks'), 'default')
         restart = safe_value(safe_get(service, 'restart'), '')
-        ssr = v2ray(con, host, port, remarks, restart)
+        ssr = v2ray(con, tips, host, remarks, restart)
         sers.extend(ssr.get_services())
     return sers
 
