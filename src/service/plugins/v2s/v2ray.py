@@ -63,6 +63,8 @@ class v2ray:
         else:
             raise ValueError('not find vmess config')
         for config in c:
+            if config['protocol'] != 'vmess':
+                continue
             _net = config['streamSettings']['network']
             _path = ""
             _type = 'none'
