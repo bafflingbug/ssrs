@@ -45,9 +45,9 @@ def index(not_net=False):
         urls = th.get_result()
         ip = th.get_name()
         if urls is None:
-            if not d['v2ray'][ip]['failed']:
+            if not d['v2ray'][ip].get('failed'):
                 d['v2ray'][ip]['failed'] = int(time.time())
-            elif int(time.time() - d['v2ray'][ip]['failed']) > 60 * 60 * 10:
+            elif int(time.time() - d['v2ray'][ip].get('failed')) > 60 * 60 * 10:
                 rm_v2(ip)
             continue
         d['v2ray'][ip]['failed'] = None
@@ -101,9 +101,9 @@ def server(ip, not_net=False):
     if ip in six.iterkeys(d['v2ray']):
         urls = get(d['v2ray'][ip])
         if urls is None:
-            if not d['v2ray'][ip]['failed']:
+            if not d['v2ray'][ip].get('failed'):
                 d['v2ray'][ip]['failed'] = time.time()
-            elif int(time.time() - d['v2ray'][ip]['failed']) > 60 * 60 * 10:
+            elif int(time.time() - d['v2ray'][ip].get('failed')) > 60 * 60 * 10:
                 rm_v2(ip)
             save_data()
             return ''
@@ -198,14 +198,14 @@ def get(url):
         return None
     try:
         j = req.json()
-    except json.JSONDecodeError:
+    except Exception:
         return None
     if 'code' not in j or j['code'] != 0 or 'data' not in j or 'data' not in j['data']:
         return None
     urls = []
     for d in j['data']['data']:
         try:
-            d = json.loads(base64.urlsafe_b64decode(d).decode())
+            d = json.loads(base64.urlsafe_b64decode(six.binary_type(d)).decode())
             urls.append(data2url(d))
         except:
             continue
@@ -213,7 +213,6 @@ def get(url):
 
 
 def data2url(data):
-    # data.pop('restart')
     b64 = base64.urlsafe_b64encode(json.dumps(data).encode()).decode()
     return 'vmess://' + b64
 
@@ -232,7 +231,7 @@ def init():
         try:
             d = json.load(open(path + '/data.json', 'r'))
             set_data(d)
-        except json.JSONDecodeError:
+        except Exception:
             get_data()
             save_data()
 

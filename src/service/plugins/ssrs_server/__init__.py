@@ -11,7 +11,7 @@ from threading import Thread
 import flask
 import requests
 import yaml
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -198,7 +198,7 @@ def get(url):
         return None
     try:
         j = req.json()
-    except json.JSONDecodeError:
+    except Exception:
         return None
     if 'code' not in j or j['code'] != 0 or 'data' not in j or 'data' not in j['data']:
         return None
@@ -210,7 +210,7 @@ def get(url):
         group = 'default-group'
     for d in j['data']['data']:
         try:
-            d = json.loads(base64.urlsafe_b64decode(d).decode())
+            d = json.loads(base64.urlsafe_b64decode(six.binary_type(d)).decode())
             d['group'] = group
             urls.append(data2url(d))
         except:
