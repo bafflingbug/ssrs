@@ -6,9 +6,9 @@ import traceback
 from multiprocessing import Process
 import requests
 import yaml
+import six
 from flask import Blueprint, json, current_app, request
-from .tools import safe_get, safe_value
-from .v2ray import v2ray
+from .v2ray import V2ray
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -69,28 +69,27 @@ def get_config():
 
 def get_host():
     conf = get_config()
-    host = safe_get(conf, 'host')
+    host = conf.get('host', None)
     return host
 
 
 def v2_load():
     conf = get_config()
-    # g = get_group(conf['reg_server'] + 'group')
     if conf is None:
         raise ValueError('not find config')
-    services = safe_get(conf, 'v2ray')
+    services = conf.get('v2ray', None)
     if services is None:
         raise ValueError('not find \'v2ray\' in config')
-    sers = []
+    servers = []
     for service in services:
-        con = safe_get(service, 'config')
-        ctips = safe_get(service, 'tips')
+        con = service.get('config', None)
+        ctips = service.get('tips', None)
         tips = {}
         if ctips is not None:
             for item in ctips:
                 oport = item['origin_port']
                 i = {}
-                for k, v in item.items():
+                for k, v in six.iteritems(item):
                     if k != 'origin_port':
                         i[k] = v
                 tips[int(oport)] = i
@@ -99,11 +98,11 @@ def v2_load():
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        remarks = safe_value(safe_get(service, 'remarks'), 'default')
-        restart = safe_value(safe_get(service, 'restart'), '')
-        v2 = v2ray(con, tips, host, remarks, restart)
-        sers.extend(v2.get_services())
-    return sers
+        remarks = service.get('remarks', 'default')
+        restart = service.get('restart', '')
+        v2 = V2ray(con, tips, host, remarks, restart)
+        servers.extend(v2.get_services())
+    return servers
 
 
 def _reg(url, h, s, t):
@@ -135,8 +134,8 @@ def init():
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        server = safe_value(safe_get(conf, 'server'), 'http://127.0.0.1:80')
-        token = safe_value(safe_get(conf, 'token'), '')
+        server = conf.get('server', 'http://127.0.0.1:80')
+        token = conf.get('token', '')
         if 'reg_server' in conf and conf['reg_server']:
             p = Process(target=_reg, args=(conf['reg_server'] + 'reg', host, server, token))
             p.start()

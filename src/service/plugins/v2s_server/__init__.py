@@ -5,14 +5,13 @@ import hashlib
 import json
 import os
 import time
+import six
 from threading import Thread
 
 import flask
 import requests
 import yaml
 from flask import Blueprint, request
-
-from .tools import safe_get, safe_value
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -35,7 +34,7 @@ def index(not_net=False):
     if cache == '1' and int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
     ths = []
-    for key, value in d['v2ray'].items():
+    for key, value in six.iteritems(d['v2ray']):
         ths.append(ResultThread(get, (value['url'],), name=key))
     for th in ths:
         th.start()
@@ -99,7 +98,7 @@ def server(ip, not_net=False):
         if not pw or pw != conf['password']:
             return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
-    if ip in d['v2ray'].keys():
+    if ip in six.iterkeys(d['v2ray']):
         urls = get(d['v2ray'][ip])
         if urls is None:
             if not d['v2ray'][ip]['failed']:
@@ -174,7 +173,7 @@ def add_v2(server, url):
 
 def rm_v2(server):
     d = get_data()
-    if server in d['v2ray'].keys():
+    if server in six.iterkeys(d['v2ray']):
         d['v2ray'].pop(server)
         return True
     return False

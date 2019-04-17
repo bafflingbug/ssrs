@@ -6,10 +6,8 @@ import copy
 import socket
 import subprocess
 
-from .tools import safe_get, safe_value
 
-
-class v2ray:
+class V2ray:
     class Service:
         def __init__(self, conf):
             self.conf = conf
@@ -46,9 +44,6 @@ class v2ray:
         with open(self.conf, 'r') as f:
             try:
                 self.configs = json.load(f)
-                # self.config = safe_get(c, "inbound")
-                # if self.config is None or safe_get(self.config, 'protocol') != 'vmess':
-                #     raise ValueError('not find vmess config')
             except Exception:
                 raise ValueError('v2ray config is not json: %s' % conf)
         self.host = host
@@ -57,10 +52,10 @@ class v2ray:
         self.tips = tips
 
     def get_services(self):
-        if safe_get(self.configs, 'inbounds') is not None:
-            c = safe_get(self.configs, 'inbounds')
-        elif safe_get(self.configs, 'inbound') is not None:
-            c = [safe_get(self.configs, 'inbound')]
+        if self.configs.get('inbounds', None) is not None:
+            c = self.configs.get('inbounds')
+        elif self.configs.get('inbound', None) is not None:
+            c = [self.configs.get('inbound')]
         else:
             raise ValueError('not find vmess config')
         for config in c:
@@ -79,7 +74,7 @@ class v2ray:
                 _type = config['streamSettings']['kcpSettings']['header']['type']
             elif _net == 'quic':
                 _type = config['streamSettings']['quicSettings']['header']['type']
-            base_service = v2ray.Service(
+            base_service = V2ray.Service(
                 {
                     'v': '2',
                     'add': self.host,

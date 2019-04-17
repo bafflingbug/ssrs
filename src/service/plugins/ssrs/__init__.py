@@ -7,7 +7,6 @@ from multiprocessing import Process
 import requests
 import yaml
 from flask import Blueprint, json, current_app, request
-from .tools import safe_get, safe_value
 from .ssr import SSR
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -69,31 +68,30 @@ def get_config():
 
 def get_host():
     conf = get_config()
-    host = safe_get(conf, 'host')
+    host = conf.get('host', None)
     return host
 
 
 def ssr_load():
     conf = get_config()
-    # g = get_group(conf['reg_server'] + 'group')
     if conf is None:
         raise ValueError('not find config')
-    services = safe_get(conf, 'ssr')
+    services = conf.get('ssr', None)
     if services is None:
         raise ValueError('not find \'ssr\' in config')
-    sers = []
+    servers = []
     for service in services:
-        con = safe_get(service, 'config')
+        con = service.get('config', None)
         if not con and con == '':
             raise ValueError('SSR config not find')
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        remarks = safe_value(safe_get(service, 'remarks'), 'default')
-        restart = safe_value(safe_get(service, 'restart'), '')
-        ssr = SSR(con, host, '', remarks, restart)
-        sers.extend(ssr.get_services())
-    return sers
+        remarks = service.get('remarks', 'default')
+        restart = service.get('restart', '')
+        ssr_ = SSR(con, host, '', remarks, restart)
+        servers.extend(ssr_.get_services())
+    return servers
 
 
 def _reg(url, h, s, t):
@@ -101,20 +99,6 @@ def _reg(url, h, s, t):
     time.sleep(10)
     requests.post(url, json=json.dumps({'token': t, 'url': '%s/%s/' % (s, os.path.basename(path)), 'server': h}))
     exit(0)
-
-
-def get_group(url):
-    req = requests.get(url)
-    if not req:
-        return 'default_group'
-    j = req.json()
-    if 'code' not in j and j['code'] != 0:
-        return 'default_group'
-    else:
-        try:
-            return j['data']['group']
-        except IndexError:
-            return 'default_group'
 
 
 def init():
@@ -125,10 +109,11 @@ def init():
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
-        server = safe_value(safe_get(conf, 'server'), 'http://127.0.0.1:80')
-        token = safe_value(safe_get(conf, 'token'), '')
-        if 'reg_server' in conf and conf['reg_server']:
-            p = Process(target=_reg, args=(conf['reg_server'] + 'reg', host, server, token))
+        server = conf.get('server', 'http://127.0.0.1:80')
+        token = conf.get('token', '')
+        reg_server = conf.get('reg_server', None)
+        if reg_server is not None:
+            p = Process(target=_reg, args=(reg_server + 'reg', host, server, token))
             p.start()
     except Exception as e:
         raise e

@@ -5,14 +5,13 @@ import hashlib
 import json
 import os
 import time
+import six
 from threading import Thread
 
 import flask
 import requests
 import yaml
 from flask import Blueprint, request
-
-from .tools import safe_get, safe_value
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -35,7 +34,7 @@ def index(not_net=False):
     if cache == '1' and int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
     ths = []
-    for key, value in d['SSR'].items():
+    for key, value in six.iteritems(d['SSR']):
         ths.append(ResultThread(get, (value['url'],), name=key))
     for th in ths:
         th.start()
@@ -46,9 +45,9 @@ def index(not_net=False):
         urls = th.get_result()
         ip = th.get_name()
         if urls is None:
-            if not d['SSR'][ip]['failed']:
+            if 'failed' not in d['SSR'][ip] or not d['SSR'][ip].get('failed'):
                 d['SSR'][ip]['failed'] = int(time.time())
-            elif int(time.time() - d['SSR'][ip]['failed']) > 60 * 60 * 10:
+            elif int(time.time() - d['SSR'][ip].get('failed')) > 60 * 60 * 10:
                 rm_ssr(ip)
             continue
         d['SSR'][ip]['failed'] = None
@@ -99,12 +98,12 @@ def server(ip, not_net=False):
         if not pw or pw != conf['password']:
             return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
-    if ip in d['SSR'].keys():
+    if ip in six.iterkeys(d['SSR']):
         urls = get(d['SSR'][ip])
         if urls is None:
-            if not d['SSR'][ip]['failed']:
+            if 'failed' not in d['SSR'][ip] or not d['SSR'][ip].get('failed'):
                 d['SSR'][ip]['failed'] = time.time()
-            elif int(time.time() - d['SSR'][ip]['failed']) > 60 * 60 * 10:
+            elif int(time.time() - d['SSR'][ip].get('failed')) > 60 * 60 * 10:
                 rm_ssr(ip)
             save_data()
             return ''
@@ -174,7 +173,7 @@ def add_ssr(server, url):
 
 def rm_ssr(server):
     d = get_data()
-    if server in d['SSR'].keys():
+    if server in six.iterkeys(d['SSR']):
         d['SSR'].pop(server)
         return True
     return False
