@@ -4,10 +4,6 @@ import __future__
 
 __import__('__future__', fromlist=__future__.all_feature_names)
 
-from gevent import monkey
-
-monkey.patch_all()
-
 import logging
 import os
 from flask import Flask
