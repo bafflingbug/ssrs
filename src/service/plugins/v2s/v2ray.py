@@ -64,16 +64,19 @@ class V2ray:
             _net = config['streamSettings']['network']
             _path = ""
             _type = 'none'
-            if _net == 'ws':
-                _path = config['streamSettings']['wsSettings']['path']
-            elif _net == 'h2':
-                _path = config['streamSettings']['httpSettings']['path']
-            elif _net == 'tcp':
-                _type = config['streamSettings']['tcpSettings']['header']['type']
-            elif _net == 'kcp':
-                _type = config['streamSettings']['kcpSettings']['header']['type']
-            elif _net == 'quic':
-                _type = config['streamSettings']['quicSettings']['header']['type']
+            try:
+                if _net == 'ws':
+                    _path = config['streamSettings']['wsSettings']['path']
+                elif _net == 'h2':
+                    _path = config['streamSettings']['httpSettings']['path']
+                elif _net == 'tcp':
+                    _type = config['streamSettings']['tcpSettings']['header']['type']
+                elif _net == 'kcp':
+                    _type = config['streamSettings']['kcpSettings']['header']['type']
+                elif _net == 'quic':
+                    _type = config['streamSettings']['quicSettings']['header']['type']
+            except:
+                pass
             base_service = V2ray.Service(
                 {
                     'v': '2',
