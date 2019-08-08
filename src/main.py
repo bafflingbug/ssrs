@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
+import __future__
+
+__import__('__future__', fromlist=__future__.all_feature_names)
 
 import logging
 import os

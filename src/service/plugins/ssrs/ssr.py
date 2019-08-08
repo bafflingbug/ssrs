@@ -5,8 +5,7 @@ import json
 import copy
 import socket
 import subprocess
-
-from .tools import safe_get, safe_value
+import six
 
 
 class SSR:
@@ -32,25 +31,15 @@ class SSR:
             return False
 
         def restart(self):
-            return subprocess.call(self.conf['restart'], shell=True)
+            if 'restart' in self.conf:
+                return subprocess.call(self.conf['restart'], shell=True)
+            return
 
         def get_data(self):
             if not self.port_open():
                 return None
             self.conf.pop('restart')
             return base64.urlsafe_b64encode(json.dumps(self.conf).encode()).decode()
-            # param_str = 'obfsparam=' + base64.urlsafe_b64encode(self.conf['obfsparam'].encode()).decode().rstrip('=')
-            # if self.conf['protoparam'] != '':
-            #     param_str += '&protoparam=' + base64.urlsafe_b64encode(
-            #         self.conf['protoparam'].encode()).decode().rstrip('=')
-            # if self.conf['remarks'] != '':
-            #     param_str += '&remarks=' + base64.urlsafe_b64encode(self.conf['remarks'].encode()).decode().rstrip('=')
-            # param_str += '&group=' + base64.urlsafe_b64encode(self.conf['group'].encode()).decode().rstrip('=')
-            # main_part = self.conf['host'] + ':' + str(self.conf['port']) + ':' + self.conf[
-            #     'protocol'] + ':' + self.conf['method'] + ':' + self.conf['obfs'] + ':' + base64.urlsafe_b64encode(
-            #     self.conf['password'].encode()).decode().rstrip('=')
-            # b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
-            # return 'ssr://' + b64
 
     def __init__(self, conf, host, group, remarks, restart):
         self.data_list = []
@@ -71,11 +60,11 @@ class SSR:
         base_service = SSR.Service(
             {
                 'host': self.host,
-                'protocol': safe_value(safe_get(self.config, 'protocol'), 'origin'),
-                'protoparam': safe_value(safe_get(self.config, 'protocol_param'), ''),
-                'method': safe_value(safe_get(self.config, 'method'), 'none'),
-                'obfs': safe_value(safe_get(self.config, 'obfs'), 'plain'),
-                'obfsparam': safe_value(safe_get(self.config, 'obfs_param'), ''),
+                'protocol': self.config.get('protocol', 'origin'),
+                'protoparam': self.config.get('protocol_param', ''),
+                'method': self.config.get('method', 'none'),
+                'obfs': self.config.get('obfs', 'plain'),
+                'obfsparam': self.config.get('obfs_param', ''),
                 'remarks': self.remarks,
                 'group': self.group,
                 'restart': self.restart,
@@ -84,7 +73,7 @@ class SSR:
             }
         )
         if 'port_password' in self.config:
-            for port, data in self.config['port_password'].items():
+            for port, data in six.iteritems(self.config['port_password']):
                 service = copy.deepcopy(base_service)
                 if type(data) is str:
                     array = {'password': data}

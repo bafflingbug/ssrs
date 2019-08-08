@@ -11,7 +11,7 @@ from threading import Thread
 import flask
 import requests
 import yaml
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -34,7 +34,7 @@ def index(not_net=False):
     if cache == '1' and int(time.time() - d['last_time']) <= 60 * 5 and d['last'] and d['last'] != '':
         return d['last']
     ths = []
-    for key, value in six.iteritems(d['SSR']):
+    for key, value in six.iteritems(d['v2ray']):
         ths.append(ResultThread(get, (value['url'],), name=key))
     for th in ths:
         th.start()
@@ -45,16 +45,16 @@ def index(not_net=False):
         urls = th.get_result()
         ip = th.get_name()
         if urls is None:
-            if 'failed' not in d['SSR'][ip] or not d['SSR'][ip].get('failed'):
-                d['SSR'][ip]['failed'] = int(time.time())
-            elif int(time.time() - d['SSR'][ip].get('failed')) > 60 * 60 * 10:
-                rm_ssr(ip)
+            if not d['v2ray'][ip].get('failed'):
+                d['v2ray'][ip]['failed'] = int(time.time())
+            elif int(time.time() - d['v2ray'][ip].get('failed')) > 60 * 60 * 10:
+                rm_v2(ip)
             continue
-        d['SSR'][ip]['failed'] = None
+        d['v2ray'][ip]['failed'] = None
         urls_list.extend(urls)
     ret = '\n'.join(urls_list)
     set_time()
-    d['last'] = base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
+    d['last'] = base64.urlsafe_b64encode(ret.encode('utf-8')).decode()
     d['last_time'] = int(time.time())
     save_data()
     return d['last']
@@ -71,7 +71,7 @@ def reg():
             return flask.json.dumps({'code': -100, 'msg': 'Missing parameters'})
         if args.get('token', '') != conf.get('token', ''):
             return flask.json.dumps({'code': -101, 'msg': 'token error'})
-        add_ssr(args['server'], args['url'])
+        add_v2(args['server'], args['url'])
         index(not_net=True)
         save_data()
         return flask.json.dumps({'code': 0, 'msg': ''})
@@ -98,19 +98,19 @@ def server(ip, not_net=False):
         if not pw or pw != conf['password']:
             return flask.json.dumps({'code': -300, 'msg': 'password error'})
     d = get_data()
-    if ip in six.iterkeys(d['SSR']):
-        urls = get(d['SSR'][ip])
+    if ip in six.iterkeys(d['v2ray']):
+        urls = get(d['v2ray'][ip])
         if urls is None:
-            if 'failed' not in d['SSR'][ip] or not d['SSR'][ip].get('failed'):
-                d['SSR'][ip]['failed'] = time.time()
-            elif int(time.time() - d['SSR'][ip].get('failed')) > 60 * 60 * 10:
-                rm_ssr(ip)
+            if not d['v2ray'][ip].get('failed'):
+                d['v2ray'][ip]['failed'] = time.time()
+            elif int(time.time() - d['v2ray'][ip].get('failed')) > 60 * 60 * 10:
+                rm_v2(ip)
             save_data()
             return ''
-        d['SSR'][ip]['failed'] = None
+        d['v2ray'][ip]['failed'] = None
         ret = '\n'.join(urls)
         save_data()
-        return base64.urlsafe_b64encode(ret.encode('utf-8')).decode().rstrip('=')
+        return base64.urlsafe_b64encode(ret.encode('utf-8')).decode()
 
 
 def load_config():
@@ -141,14 +141,14 @@ def get_data():
         data = {
             'last_time': 0,
             'last': '',
-            'SSR': {}
+            'v2ray': {}
         }
     if 'last_time' not in data or type(data['last_time']) != int:
         data['last_time'] = 0
     if 'last' not in data:
         data['last'] = ''
-    if 'SSR' not in data or type(data['SSR']) is not dict:
-        data['SSR'] = {}
+    if 'v2ray' not in data or type(data['v2ray']) is not dict:
+        data['v2ray'] = {}
     return data
 
 
@@ -165,16 +165,16 @@ def set_time():
     return True
 
 
-def add_ssr(server, url):
+def add_v2(server, url):
     d = get_data()
-    d['SSR'][server] = {'url': url, 'failed': None}
+    d['v2ray'][server] = {'url': url, 'failed': None}
     return True
 
 
-def rm_ssr(server):
+def rm_v2(server):
     d = get_data()
-    if server in six.iterkeys(d['SSR']):
-        d['SSR'].pop(server)
+    if server in six.iterkeys(d['v2ray']):
+        d['v2ray'].pop(server)
         return True
     return False
 
@@ -203,15 +203,9 @@ def get(url):
     if 'code' not in j or j['code'] != 0 or 'data' not in j or 'data' not in j['data']:
         return None
     urls = []
-    conf = get_config()
-    if 'group' in conf:
-        group = conf['group']
-    else:
-        group = 'default-group'
     for d in j['data']['data']:
         try:
             d = json.loads(base64.urlsafe_b64decode(six.binary_type(d)).decode())
-            d['group'] = group
             urls.append(data2url(d))
         except:
             continue
@@ -219,18 +213,8 @@ def get(url):
 
 
 def data2url(data):
-    param_str = 'obfsparam=' + base64.urlsafe_b64encode(data['obfsparam'].encode()).decode().rstrip('=')
-    if data['protoparam'] != '':
-        param_str += '&protoparam=' + base64.urlsafe_b64encode(
-            data['protoparam'].encode()).decode().rstrip('=')
-    if data['remarks'] != '':
-        param_str += '&remarks=' + base64.urlsafe_b64encode(data['remarks'].encode()).decode().rstrip('=')
-    param_str += '&group=' + base64.urlsafe_b64encode(data['group'].encode()).decode().rstrip('=')
-    main_part = data['host'] + ':' + str(data['port']) + ':' + data[
-        'protocol'] + ':' + data['method'] + ':' + data['obfs'] + ':' + base64.urlsafe_b64encode(
-        data['password'].encode()).decode().rstrip('=')
-    b64 = base64.urlsafe_b64encode((main_part + '/?' + param_str).encode()).decode().rstrip('=')
-    return 'ssr://' + b64
+    b64 = base64.urlsafe_b64encode(json.dumps(data).encode()).decode()
+    return 'vmess://' + b64
 
 
 def md5_updata(a):
@@ -247,7 +231,7 @@ def init():
         try:
             d = json.load(open(path + '/data.json', 'r'))
             set_data(d)
-        except json.JSONDecodeError:
+        except Exception:
             get_data()
             save_data()
 

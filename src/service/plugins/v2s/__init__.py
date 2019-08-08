@@ -6,8 +6,9 @@ import traceback
 from multiprocessing import Process
 import requests
 import yaml
+import six
 from flask import Blueprint, json, current_app, request
-from .ssr import SSR
+from .v2ray import V2ray
 
 path = os.path.dirname(os.path.abspath(__file__))
 blueprint = Blueprint(os.path.basename(path), __name__)
@@ -23,10 +24,10 @@ def index():
             return json.dumps({'code': -500, 'msg': 'no config'})
         if request.args.get('token', '') != conf.get('token', ''):
             return json.dumps({'code': -101, 'msg': 'token error'})
-        ssr_list = ssr_load()
-        if ssr_list is None:
-            return json.dumps({'code': 100, 'msg': 'no SSR'})
-        return json.dumps({'code': 0, 'data': {'data': ssr_list}, 'msg': 0})
+        v2_list = v2_load()
+        if v2_list is None:
+            return json.dumps({'code': 100, 'msg': 'no v2ray'})
+        return json.dumps({'code': 0, 'data': {'data': v2_list}, 'msg': 0})
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
         return json.dumps({'code': -500, 'msg': repr(e)})
@@ -72,25 +73,35 @@ def get_host():
     return host
 
 
-def ssr_load():
+def v2_load():
     conf = get_config()
     if conf is None:
         raise ValueError('not find config')
-    services = conf.get('ssr', None)
+    services = conf.get('v2ray', None)
     if services is None:
-        raise ValueError('not find \'ssr\' in config')
+        raise ValueError('not find \'v2ray\' in config')
     servers = []
     for service in services:
         con = service.get('config', None)
+        ctips = service.get('tips', None)
+        tips = {}
+        if ctips is not None:
+            for item in ctips:
+                oport = item['origin_port']
+                i = {}
+                for k, v in six.iteritems(item):
+                    if k != 'origin_port':
+                        i[k] = v
+                tips[int(oport)] = i
         if not con and con == '':
-            raise ValueError('SSR config not find')
+            raise ValueError('v2ray config not find')
         host = get_host()
         if host is None:
             raise ValueError('\'host\' is config is None')
         remarks = service.get('remarks', 'default')
         restart = service.get('restart', '')
-        ssr_ = SSR(con, host, '', remarks, restart)
-        servers.extend(ssr_.get_services())
+        v2 = V2ray(con, tips, host, remarks, restart)
+        servers.extend(v2.get_services())
     return servers
 
 
@@ -99,6 +110,20 @@ def _reg(url, h, s, t):
     time.sleep(10)
     requests.post(url, json=json.dumps({'token': t, 'url': '%s/%s/' % (s, os.path.basename(path)), 'server': h}))
     exit(0)
+
+
+def get_group(url):
+    req = requests.get(url)
+    if not req:
+        return 'default_group'
+    j = req.json()
+    if 'code' not in j and j['code'] != 0:
+        return 'default_group'
+    else:
+        try:
+            return j['data']['group']
+        except IndexError:
+            return 'default_group'
 
 
 def init():
@@ -111,9 +136,8 @@ def init():
             raise ValueError('\'host\' is config is None')
         server = conf.get('server', 'http://127.0.0.1:80')
         token = conf.get('token', '')
-        reg_server = conf.get('reg_server', None)
-        if reg_server is not None:
-            p = Process(target=_reg, args=(reg_server + 'reg', host, server, token))
+        if 'reg_server' in conf and conf['reg_server']:
+            p = Process(target=_reg, args=(conf['reg_server'] + 'reg', host, server, token))
             p.start()
     except Exception as e:
         raise e
