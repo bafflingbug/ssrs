@@ -1,5 +1,4 @@
-> - 此分支为v3.0版本
-> - 目前最新版为v3.5支持生成v2ray订阅（仅N/NG格式）参见[feature/v2ray](https://github.com/bafflingbug/ssrs/tree/feature/v2ray)
+> - 目前最新版为v3.5支持生成v2ray订阅
 
 # ShadowsocksR-support
 一个在服务器端生成ShadowsockR服务器订阅以及维护进程存活的简单实现
@@ -96,6 +95,7 @@
           remarks:
           restart:
     ```
+    - 关于tips字段的说明参加[wiki](https://github.com/bafflingbug/ssrs/wiki/v2s-tips-%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E)
 ### SSR服务器订阅地址
 `http(s)://[main-server]/<ssrs plugins name>/?pw=[password]`
 
