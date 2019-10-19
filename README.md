@@ -1,4 +1,4 @@
-# ShadowsocksR-support
+# SSRS
 一个在服务器端生成ShadowsockR或v2ray服务器订阅以及维护进程存活的简单实现
 
 ## 下载
