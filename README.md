@@ -5,8 +5,8 @@
 [release](https://github.com/bafflingbug/ssrs/releases)
 
 ### 设计目的
-- 防止因为DNS解析导致SSR服务器ip被BAN
-- 防止SSR进程因意外被终止
+- ~~防止因为DNS解析导致SSR服务器ip被BAN~~
+- ~~防止SSR进程因意外被终止~~
 - 降低因服务器新增/迁移，SSR设置更新等的工作量
 
 ### 插件
